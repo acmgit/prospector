@@ -63,10 +63,43 @@ minetest.register_chatcommand("search_for", {
     params = "node",
     description = "Shows you the given Nodes in a Radius of ".. searchRadius .. ".",
     func = function(param)
-    
+                                            
+        if(param == nil) then
+                minetest.display_chat_message(green .. "No Node given. Usage: search_for <node>.\n")
+                return
+        end
+
         local node = param:lower()
         node = node:trim()
         search_node(node)
+                                            
+    end -- function
+                                            
+}) -- chatcommand search_for
+
+minetest.register_chatcommand("search_for_index", {
+
+    params = "idx",
+    description = "Shows you the given Node at Entry " .. yellow .. "<idx>" .. green .. " from the Nodelist in a Radius of ".. searchRadius .. ".",
+    func = function(param)
+        
+        if(param == nil) then
+                minetest.display_chat_message(green .. "No Index set. Usage: search_for_index <idx>.\n")
+                return
+        end
+                                                  
+        local idx = param:lower()
+        idx = tonumber(idx:trim())
+        
+        local node = pnodelist[idx]
+                      
+        if(node ~= nil) then
+            search_node(node)
+                      
+        else
+            minetest.display_chat_message(green .. "No Node found at Entry " .. yellow .. idx .. green .. " in the Nodelist.\n")
+        
+        end
                                             
     end -- function
                                             
@@ -78,6 +111,26 @@ minetest.register_chatcommand("show_nodelist", {
     description = "Shows you all successfully found Nodes.",
     func = function()
         show_nodelist()
+                                            
+    end -- function
+                                            
+}) -- chatcommand search_for
+
+minetest.register_chatcommand("filter_nodelist", {
+
+    params = "filter",
+    description = "Shows you all successfully found Nodes.",
+    func = function(param)
+                                                 
+        if(param == nil) then
+            show_nodelist()
+            return
+                                                 
+        end
+                                                 
+        local filter = param:lower()
+        filter = filter:trim()
+        filter_nodelist(filter)
                                             
     end -- function
                                             
@@ -106,7 +159,12 @@ minetest.register_chatcommand("set_radius", {
     params = "radius",
     description = "Set's or shows you the the Radius for the command .search_for.",
     func = function(param)
-
+        
+        if(param == nil) then
+                minetest.display_chat_message(green .. "No Radius given. Usage: set_radius <radius>.\n")
+                return
+        end
+                                            
         local radius = tonumber(param:trim())
         minetest.display_chat_message(green .. " Current Radius = " .. orange .. searchRadius .. green .. ".\n")
         minetest.display_chat_message(green .. " Max Radius = " .. red .. maxRadius .. green .. ".\n")
@@ -127,6 +185,11 @@ minetest.register_chatcommand("set_node", {
     description = "Set's an new Node or shows the current Node for search.",
     func = function(param)
     
+        if(param == nil) then
+                minetest.display_chat_message(green .. "No Node given. Usage: set_node <node>.\n")
+                return
+        end
+
         local node = param:lower()
         node = node:trim()
                                           
@@ -152,13 +215,59 @@ minetest.register_chatcommand("set_node", {
 
 }) -- chatcommand set_node
 
+minetest.register_chatcommand("set_node_index", {
+        
+    params = "idx",
+    description = "Set's an new Node from the Nodelist at <idx>.",
+    func = function(param)
+
+        if(param == nil) then
+                minetest.display_chat_message(green .. "No Index given. Usage: set_node_index <idx>.\n")
+                return
+        end
+
+        local idx = param:lower()
+        idx = tonumber(idx:trim())
+        
+        local node = pnodelist[idx]
+                                                
+        if(node == nil) then
+            minetest.display_chat_message(green .. "No Node found in list at Entry Nr.: " .. orange .. idx .. green ..".\n")
+                                          
+        else
+            minetest.display_chat_message(green .. "Old node was set to: " .. orange .. current_Node .. green ..".\n")
+            current_Node = node
+            minetest.display_chat_message(green .. "Current node set to: " .. orange .. current_Node .. green ..".\n")
+    
+        end -- if(node == ""
+    
+    end -- function
+
+}) -- chatcommand set_node
+
 function show_nodelist()
     
     minetest.display_chat_message(green .. "Show the Nodelist:\n")
     
     for idx,entry in pairs(pnodelist) 
     do
-            minetest.display_chat_message(orange .. entry .. green .."\n")
+            minetest.display_chat_message(yellow .. idx .. ": " .. orange .. entry .. green .."\n")
+            
+    end -- for _,key
+    
+end -- function(show_nodelist
+
+function filter_nodelist(filter)
+    
+    minetest.display_chat_message(green .. "Show the Nodelist only with: " .. orange .. filter .. green .. ".\n")
+    
+    for idx,entry in pairs(pnodelist) 
+    do
+            local hit = string.find(entry, filter)
+            if(hit ~= nil) then
+                minetest.display_chat_message(yellow .. idx .. green .. ": " .. orange .. entry .. green .."\n")
+                
+            end
             
     end -- for _,key
     
