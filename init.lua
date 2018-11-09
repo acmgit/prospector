@@ -3,6 +3,9 @@ local searchRadius = 100
 local maxRadius = 300
 local current_Node = ""
 local last_pos = ""
+local pnodelist = {}
+local nodestring = ""           -- String to load
+local prospector_storage = minetest.get_mod_storage()
 
 -- Colors for Chat
 local green = minetest.get_color_escape_sequence('#00FF00')
@@ -23,6 +26,17 @@ local light_red = minetest.get_color_escape_sequence('#FF8888')
 minetest.register_on_connect(function()
     you = minetest.localplayer               
 end)
+
+nodestring = prospector_storage:get_string("nodes") -- Get the Nodelist as String
+if(nodestring ~= nil) then
+    pnodelist = minetest.deserialize(nodestring) -- and write it to the list.
+    minetest.display_chat_message(green .. "Nodelist loaded.\n")
+    
+else
+    nodelist = ""
+    minetest.display_chat_message(green .. "No Nodelist found.\n")
+    
+end
 
 
 minetest.register_chatcommand("last_pos", {
@@ -51,7 +65,19 @@ minetest.register_chatcommand("search_for", {
     func = function(param)
     
         local node = param:lower()
+        node = node:trim()
         search_node(node)
+                                            
+    end -- function
+                                            
+}) -- chatcommand search_for
+
+minetest.register_chatcommand("show_nodelist", {
+
+    params = "",
+    description = "Shows you all successfully found Nodes.",
+    func = function()
+        show_nodelist()
                                             
     end -- function
                                             
@@ -63,7 +89,7 @@ minetest.register_chatcommand("search", {
     description = "Shows you the given Nodes in a Radius of ".. searchRadius .. ".",
     func = function()
     
-        if(searchNode == "") then
+        if(current_Node == "") then
             minetest.display_chat_message(green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
                                         
         else
@@ -126,7 +152,41 @@ minetest.register_chatcommand("set_node", {
 
 }) -- chatcommand set_node
 
+function show_nodelist()
+    
+    minetest.display_chat_message(green .. "Show the Nodelist:\n")
+    
+    for idx,entry in pairs(pnodelist) 
+    do
+            minetest.display_chat_message(orange .. entry .. green .."\n")
+            
+    end -- for _,key
+    
+end -- function(show_nodelist
 
+function check_node(node)
+
+    for _,entry in pairs(pnodelist)
+    do
+        if(entry == node) then
+            return
+            
+        end
+        
+    end -- for
+    
+    add_node(node)
+    minetest.display_chat_message(green .. "Node: " .. orange .. node .. green .. " added to Nodelist.\n")
+    table.sort(pnodelist)
+    nodestring = minetest.serialize(pnodelist)
+    prospector_storage:set_string("nodes", nodestring) -- Saves the Table
+    
+end -- function check_node
+
+function add_node(node)
+    table.insert(pnodelist, node)
+    
+end -- function add_node
 
 function search_node(node)
     
@@ -142,6 +202,8 @@ function search_node(node)
             minetest.display_chat_message(green .. "Found at ".. orange .. minetest.pos_to_string(nodes) .. green .. ".\n")
             last_pos = minetest.pos_to_string(nodes)
             minetest.display_chat_message(green .. "This is ".. yellow .. calc_distance() .. green .. " Nodes far away.\n")
+            check_node(node)
+            
             --minetest.display_chat_message(grey .. dump(nodes))
                                             
         else
