@@ -245,6 +245,32 @@ minetest.register_chatcommand("set_node_index", {
 
 }) -- chatcommand set_node
 
+minetest.register_chatcommand("who_is", {
+
+    params = "",
+    description = "Shows you all online Playernames.",
+    func = function()
+    
+        local online = minetest.get_player_names()
+        if(online == nil) then 
+                minetest.display_chat_message(green .. "No Player is online?\n")
+                return
+                                        
+        else
+            table.sort(online)
+    
+        end
+                                            
+        minetest.display_chat_message(green .. "Player now online:\n")
+                                        
+        for pl, name in pairs(online) do
+            minetest.display_chat_message(green .. pl .. ": " .. orange .. name .. "\n")
+        
+        end -- for
+    end -- function
+                                            
+}) -- chatcommand search
+
 function show_nodelist()
     
     minetest.display_chat_message(green .. "Show the Nodelist:\n")
