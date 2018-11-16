@@ -197,8 +197,8 @@ minetest.register_chatcommand("last_pos", {
     description = "Shows you the last Position of a found Node.\nUsage:\n<> shows you the last Position.\n",
     func = function()
         
-        if(prospector.prospector.last_pos ~= "") then
-            prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.prospector.last_pos .. prospector.green .. ".\n")
+        if(prospector.last_pos ~= "") then
+            prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.last_pos .. prospector.green .. ".\n")
             prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
         else
             prospector.print(prospector.green .. "There is no last Found set.\n")
