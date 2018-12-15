@@ -1,5 +1,8 @@
 local prospector = {}
 
+prospector.version = 1
+prospector.revision = 0
+
 prospector.you = nil -- Player
 prospector.searchRadius = 100
 prospector.maxRadius = 300
@@ -372,5 +375,38 @@ minetest.register_chatcommand("who_is", {
         end -- for
     end -- function
                                             
-}) -- chatcommand search
+}) -- chatcommand searc
 
+minetest.register_chatcommand("show_mapblock",{
+
+    params = "<>",
+    description = "Shows the current Mapblock, where you are.",
+    func = function()
+        
+        local mypos = prospector.you:get_pos()
+        local x = math.floor(mypos.x+0.5)
+        local y = math.floor(mypos.y+0.5)
+        local z = math.floor(mypos.z+0.5)
+    
+        local pos_string = math.floor(x / 16) .. "." .. math.floor(y / 16) .. "." .. math.floor(z / 16)
+        
+        prospector.print(prospector.green .. "Current Mapblocknumber: (" .. prospector.orange .. pos_string .. prospector.green .. ")\n")
+    end -- function
+                                              
+}) -- chatcommand show_mapblock
+
+minetest.register_chatcommand("prospector_version",{
+    
+    params = "<>",
+    description = "Shows the current Revision of Prospector.",
+    func = function ()
+        
+        prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
+        
+    end -- function
+
+}) -- chatcommand prospector_version
+        
+       
+   
+                                                    
