@@ -1,7 +1,7 @@
 local prospector = {}
 
 prospector.version = 1
-prospector.revision = 0
+prospector.revision = 1
 
 prospector.you = nil -- Player
 prospector.searchRadius = 100
@@ -11,6 +11,7 @@ prospector.last_pos = ""
 prospector.pnodelist = {}
 prospector.nodestring = ""           -- String to load
 prospector.storage = minetest.get_mod_storage()
+prospector.waypoint = nil
 
 -- Colors for Chat
 prospector.green = minetest.get_color_escape_sequence('#00FF00')
@@ -165,6 +166,19 @@ function prospector.print(text)
     
 end -- function prospector.print(
 
+function prospector.convert_position(pos)
+    
+    if(pos ~= nil) then
+
+        pos.x = tonumber(string.format("%.1f",pos.x))
+        pos.y = tonumber(string.format("%.1f",pos.y))
+        pos.z = tonumber(string.format("%.1f",pos.z))
+        return pos
+        
+    end -- if(prospector.waypoint ~= nil
+    
+    return nil
+end -- function convert_position
 --[[
    ****************************************************************
    *******        Main for Prospector                        ******
@@ -391,6 +405,75 @@ minetest.register_chatcommand("show_mapblock",{
         local pos_string = math.floor(x / 16) .. "." .. math.floor(y / 16) .. "." .. math.floor(z / 16)
         
         prospector.print(prospector.green .. "Current Mapblocknumber: (" .. prospector.orange .. pos_string .. prospector.green .. ")\n")
+    end -- function
+                                              
+}) -- chatcommand show_mapblock
+
+minetest.register_chatcommand("waypoint",{
+
+    params = "<> | -s | -m | -w X,Y,Z",
+    description = "\n<> shows you the stored Waypoint.\n-s - Set's the Waypoint to your current Position.\n-m - Calculates the Distance from your Waypoint.\n-w (X,Y,Z) - Set's the Waypoint to <Pos>",
+    func = function(param)
+        
+        local parameter = param:lower()
+        local command = {}
+        
+        command = prospector.split(parameter)
+        local current_position = prospector.you:get_pos()
+        current_position = prospector.convert_position(current_position)
+                                         
+        -- No Node or Index given
+        if(command[1] == nil or command[1] == "") then
+            if(prospector.waypoint ~= nil) then
+                                         
+                prospector.print(prospector.green .. "Current Waypoint is @ " .. prospector.orange .. minetest.pos_to_string(prospector.waypoint))
+                                         
+            else
+                prospector.print(prospector.green .. "Current Waypoint is " .. prospector.orange .. " not set.\n")
+                                 
+            end -- if(prospector.waypoint ~=
+    
+        elseif(command[1] == "-s") then
+            prospector.waypoint = current_position
+            prospector.print(prospector.green .. "Waypoint set to " .. prospector.orange .. minetest.pos_to_string(prospector.waypoint))
+                                         
+        elseif(command[1] == "-m") then
+            if(prospector.waypoint ~= nil) then
+                                         
+                prospector.print(prospector.green .. "Current Waypoint is @ " .. prospector.orange .. minetest.pos_to_string(prospector.waypoint))
+                prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
+                                         
+                local distance = math.floor(vector.distance(current_position, prospector.waypoint))
+                                         
+                prospector.print(prospector.green .. "You are " .. prospector.orange .. distance .. prospector.green .. " Nodes far away.")
+                                         
+            else
+                                         
+                prospector.print(prospector.green .. "Current Waypoint is " .. prospector.orange .. " not set " .. prospector.green .. " to calculate a Distance.\n")
+                                         
+            end -- if(prospector.waypoint ~= nil
+        
+        elseif(command[1] == "-w") then
+            
+            if(command[2] == nil or command[2] == "") then
+                prospector.print(prospector.red .. "No Position to set Waypoint given.\n")
+                                         
+            else
+                if(tonumber(command[2]) ~= nil and tonumber(command[3]) ~= nil and tonumber(command[4]) ~= nil) then
+                    local new_waypoint = "(" .. tonumber(command[2]) .. "," .. tonumber(command[3]) .. "," .. tonumber(command[4]) .. ")"
+                    prospector.print(prospector.green .. "Waypoint set to : " .. prospector.orange .. new_waypoint .. "\n")
+                    prospector.waypoint = minetest.string_to_pos(new_waypoint)
+                    prospector.waypoint = prospector.convert_position(prospector.waypoint)
+                                         
+                else
+                    prospector.print(prospector.red .. "Wrong Position(format) given.\n")
+                                                                                       
+                end -- if(command[3] .. command[4]
+                                                                                       
+            end -- if(command[2] ~= nil
+                                         
+        end -- if(command[1] ==
+                                                 
     end -- function
                                               
 }) -- chatcommand show_mapblock
