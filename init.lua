@@ -141,7 +141,7 @@ end -- function calc_distance_pos
 
 function prospector.split(parameter)
         local cmd = {}
-        for word in string.gmatch(parameter, "[%w%-%:]+") do
+        for word in string.gmatch(parameter, "[%w%-%:%_]+") do
             table.insert(cmd, word)
             
         end -- for word
