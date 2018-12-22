@@ -37,26 +37,37 @@ prospector.light_red = minetest.get_color_escape_sequence('#FF8888')
 function prospector.show_nodelist(pattern)
     if(pattern == "") then
         prospector.print(prospector.green .. "Show the Nodelist:\n")
-        for idx,entry in pairs(prospector.pnodelist) 
-        do
-            prospector.print(prospector.yellow .. idx .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
+        if(prospector.nodelist ~= nil) then
+            for idx,entry in pairs(prospector.pnodelist) 
+            do
+                prospector.print(prospector.yellow .. idx .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
             
-        end -- for _,key
-        
+            end -- for _,key
+        else
+            prospector.print(prospector.red .. "Empty Nodelist.\n")
+            
+        end -- if(prospector.nodelist ~= nil
+            
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " .. prospector.orange .. pattern .. prospector.green .. ".\n")
-        local count = 0
-        for idx,entry in pairs(prospector.pnodelist) 
-        do
-            local hit = string.find(entry, pattern)
-            if(hit ~= nil) then
-                prospector.print(prospector.yellow .. idx .. prospector.green .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
-                count = count + 1
+        if(prospector.nodelist ~= nil) then
+            local count = 0
+            for idx,entry in pairs(prospector.pnodelist) 
+            do
+                local hit = string.find(entry, pattern)
+                if(hit ~= nil) then
+                    prospector.print(prospector.yellow .. idx .. prospector.green .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
+                    count = count + 1
                 
-            end
+                end -- if(hit ~= nil
             
-        end -- for _,key
-        
+            end -- for _,key
+            
+        else
+            prospector.print(prospector.red .. "Emtpy Nodelist.\n")
+            
+        end -- if(prospector.nodelist ~= nil
+            
         if(count > 0) then
             prospector.print(prospector.green .. "Found " .. prospector.yellow .. count .. prospector.green .. " Nodes.\n")
         
@@ -70,15 +81,18 @@ function prospector.show_nodelist(pattern)
 end -- function(show_nodelist
 
 function prospector.check_node(node)
-    for _,entry in pairs(prospector.pnodelist)
-    do
-        if(entry == node) then
-            return
+    if(prospector.pnodelist ~= nil) then
+        for _,entry in pairs(prospector.pnodelist)
+        do
+            if(entry == node) then
+                return
             
-        end
+            end
         
-    end -- for
-    
+        end -- for
+        
+    end -- if(prospector.pnodelist
+        
     prospector.add_node(node)
     prospector.print(prospector.green .. "Node: " .. prospector.orange .. node .. prospector.green .. " added to Nodelist.\n")
     table.sort(prospector.pnodelist)
@@ -88,7 +102,14 @@ function prospector.check_node(node)
 end -- function check_node
 
 function prospector.add_node(node)
-    table.insert(prospector.pnodelist, node)
+    if(prospector.pnodelist == nil) then
+        prospector.pnodelist = {}
+        table.insert(prospector.pnodelist, node)
+        
+    else
+        table.insert(prospector.pnodelist, node)
+        
+    end -- if(prospector.pnodelist == nil
     
 end -- function add_node
 
