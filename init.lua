@@ -43,8 +43,7 @@ function prospector.show_nodelist(pattern)
             do
                 prospector.print(prospector.yellow .. idx .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
             
-            end -- for _,key
-            
+            end -- for _,key            
         else
             prospector.print(prospector.red .. "Empty Nodelist.")
             return
@@ -62,15 +61,16 @@ function prospector.show_nodelist(pattern)
                     prospector.print(prospector.yellow .. idx .. prospector.green .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
                     count = count + 1
                 
-                end
+                end -- if(hit ~= nil
             
             end -- for _,key
             
         else
             prospector.print(prospector.red .. "Empty Nodelist.")
             return
-        end
             
+        end -- if(prospector.nodelist ~= nil
+        
         if(count > 0) then
             prospector.print(prospector.green .. "Found " .. prospector.yellow .. count .. prospector.green .. " Nodes.\n")
         
@@ -84,15 +84,18 @@ function prospector.show_nodelist(pattern)
 end -- function(show_nodelist
 
 function prospector.check_node(node)
-    for _,entry in pairs(prospector.pnodelist)
-    do
-        if(entry == node) then
-            return
+    if(prospector.pnodelist ~= nil) then
+        for _,entry in pairs(prospector.pnodelist)
+        do
+            if(entry == node) then
+                return
             
-        end
+            end -- if(entry == node
         
-    end -- for
-    
+        end -- for
+        
+    end -- if(prospector.nodelist ~= nil
+        
     prospector.add_node(node)
     prospector.print(prospector.green .. "Node: " .. prospector.orange .. node .. prospector.green .. " added to Nodelist.\n")
     table.sort(prospector.pnodelist)
@@ -102,7 +105,14 @@ function prospector.check_node(node)
 end -- function check_node
 
 function prospector.add_node(node)
-    table.insert(prospector.pnodelist, node)
+    if(prospector.pnodelist == nil) then
+        prospector.pnodelist = {}
+        table.insert(prospector.pnodelist, node)
+        
+    else
+        table.insert(prospector.pnodelist, node)
+        
+    end -- if(prospector.pnodelist
     
 end -- function add_node
 
@@ -478,7 +488,3 @@ minetest.register_chatcommand("prospector_version",{
     end -- function
 
 }) -- chatcommand prospector_version
-        
-       
-   
-                                                    
