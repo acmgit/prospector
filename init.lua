@@ -84,14 +84,17 @@ function prospector.show_nodelist(pattern)
 end -- function(show_nodelist
 
 function prospector.check_node(node)
-    for _,entry in pairs(prospector.pnodelist)
-    do
-        if(entry == node) then
-            return
+    if(prospector.pnodelist ~= nil) then
+        for _,entry in pairs(prospector.pnodelist)
+        do
+            if(entry == node) then
+                return
             
-        end
+            end -- if(entry ==
         
-    end -- for
+        end -- for _,entry
+        
+    end -- if(prospector.pnodelist
     
     prospector.add_node(node)
     prospector.print(prospector.green .. "Node: " .. prospector.orange .. node .. prospector.green .. " added to Nodelist.\n")
@@ -102,7 +105,15 @@ function prospector.check_node(node)
 end -- function check_node
 
 function prospector.add_node(node)
-    table.insert(prospector.pnodelist, node)
+    
+    if(prospector.pnodelist =~ nil) then
+        prospector.pnodelist = {}
+        table.insert(prospector.pnodelist, node)
+        
+    else
+        table.insert(prospector.pnodelist, node)
+    
+    end -- if(prospector.pnodelist ~=
     
 end -- function add_node
 
