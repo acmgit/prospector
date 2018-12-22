@@ -37,7 +37,7 @@ prospector.light_red = minetest.get_color_escape_sequence('#FF8888')
 function prospector.show_nodelist(pattern)
     if(pattern == "") then
         prospector.print(prospector.green .. "Show the Nodelist:\n")
-        if(prospector.nodelist ~= nil) then
+        if(prospector.pnodelist ~= nil) then
             for idx,entry in pairs(prospector.pnodelist) 
             do
                 prospector.print(prospector.yellow .. idx .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
@@ -50,8 +50,8 @@ function prospector.show_nodelist(pattern)
             
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " .. prospector.orange .. pattern .. prospector.green .. ".\n")
-        if(prospector.nodelist ~= nil) then
-            local count = 0
+        local count = 0
+        if(prospector.pnodelist ~= nil) then
             for idx,entry in pairs(prospector.pnodelist) 
             do
                 local hit = string.find(entry, pattern)
