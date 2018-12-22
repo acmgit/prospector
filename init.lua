@@ -1,7 +1,7 @@
 local prospector = {}
 
-prospector.version = 1
-prospector.revision = 2
+prospector.version = 2
+prospector.revision = 0
 
 prospector.you = nil -- Player
 prospector.searchRadius = 100
@@ -11,7 +11,8 @@ prospector.last_pos = ""
 prospector.pnodelist = {}
 prospector.nodestring = ""           -- String to load
 prospector.storage = minetest.get_mod_storage()
-prospector.marker = nil
+prospector.distancer_channelname = "distancer"
+prospector.distancer_channel = nil
 
 -- Colors for Chat
 prospector.green = minetest.get_color_escape_sequence('#00FF00')
@@ -42,18 +43,18 @@ function prospector.show_nodelist(pattern)
             do
                 prospector.print(prospector.yellow .. idx .. ": " .. prospector.orange .. entry .. prospector.green .."\n")
             
-            end -- for _,key
+            end -- for _,key            
         else
             prospector.print(prospector.red .. "Empty Nodelist.")
             return
             
-        end -- if(prospector.nodelist ~= nil
-        
+        end -- if(prospector.pnodelist ~= nil
+            
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " .. prospector.orange .. pattern .. prospector.green .. ".\n")
         local count = 0
-        if(prospector.pnodelist ~= nil) then
-            for idx,entry in pairs(prospector.pnodelist) 
+        if(prospector.nodelist ~= nil) then
+            for idx,entry in ipairs(prospector.pnodelist) 
             do
                 local hit = string.find(entry, pattern)
                 if(hit ~= nil) then
@@ -218,6 +219,42 @@ function prospector.convert_position(pos)
     
     return nil
 end -- function convert_position
+
+function prospector.handle_message(sender, message)
+    prospector.print(prospector.green .. "Prospectormessage from " .. prospector.orange .. sender .. prospector.green .. " received.\n")
+
+end -- distancer.handle_message
+
+function prospector.handle_channel_event(channel, msg)
+    local report = ""
+    if(msg ~= 0) then
+        if(msg == 0) then
+            report = prospector.orange .. " join with success.\n"
+            
+        elseif(msg == 1) then
+            report = prospector.red .. " join failed.\n"
+            
+        elseif(msg == 2) then
+            report = prospector.orange .. " leave with success.\n"
+            
+        elseif(msg == 3) then
+            report = prospector.red .. " leave failed.\n"
+            
+        elseif(msg == 4) then
+            report = prospector.orange .. " Event on another Channel.\n"
+            
+        elseif(msg == 5) then 
+            report = prospector.orange .. " state changed.\n"
+        else
+            report = prospector.red .. " unknown Event.\n"
+        end
+        
+        prospector.print(prospector.green .. "Prospectorchannel: " .. prospector.orange .. channel .. report)
+        
+    end -- if(msg ~= 0
+    
+end -- function prospector.handle_channel_event(
+        
 --[[
    ****************************************************************
    *******        Main for Prospector                        ******
@@ -225,9 +262,10 @@ end -- function convert_position
 --]]
 
 -- Get yourself
-minetest.register_on_connect(function()
-    prospector.you = minetest.localplayer               
-end)
+prospector.you = minetest.localplayer
+
+-- Join to shared Modchannel
+prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
 
 prospector.nodestring = prospector.storage:get_string("nodes") -- Get the Nodelist as String
 if(prospector.nodestring ~= nil) then
@@ -240,6 +278,18 @@ else
     
 end
 
+minetest.register_on_modchannel_signal(function(channelname, signal)
+            prospector.handle_channel_event(channelname, signal)
+                                      
+end) -- minetest.register_on_modchannel_signal(
+
+minetest.register_on_modchannel_message(function(channelname, sender, message)
+    if(channelname == prospector.distancer_channelname) then
+        prospector.handle_message(sender, message)
+                                        
+    end -- if(channelname ==
+                                        
+end) -- minetest.register_on_mod_channel_message
 
 --[[
    ****************************************************************
@@ -247,7 +297,7 @@ end
    ****************************************************************
 --]]
 
-minetest.register_chatcommand("last_pos", {
+minetest.register_chatcommand("prospector_show_lastpos", {
 
     params = "<>",
     description = "Shows you the last Position of a found Node.\nUsage:\n<> shows you the last Position.\n",
@@ -264,9 +314,9 @@ minetest.register_chatcommand("last_pos", {
                                             
     end -- function
                                             
-}) -- chatcommand prospector.last_pos
+}) -- chatcommand prospector_last_pos
 
-minetest.register_chatcommand("show_nodelist", {
+minetest.register_chatcommand("prospector_show_nodelist", {
 
     params = "<> | <searchpattern>",
     description = "Shows you all successfully found Nodes.\nUsage:\n<> Shows you the whole Nodelist with Index.\n<searchpattern> Shows you a filtered Nodelist with <searchpattern>.\n",
@@ -276,9 +326,9 @@ minetest.register_chatcommand("show_nodelist", {
                                             
     end -- function
                                             
-}) -- chatcommand search_for
+}) -- chatcommand prospector_show_nodelist
 
-minetest.register_chatcommand("search_node", {
+minetest.register_chatcommand("prospector_search_node", {
 
     params = "<> | <Node> | <-i> index",
     description = "Shows you the given Nodes in a Radius of <.set_radius>.\nUsage:\n<> searches for the set node with command .set_node\n<Node> search for <Node>\n<-i> index searches for Node in the Nodelist.\n",
@@ -325,9 +375,9 @@ minetest.register_chatcommand("search_node", {
         
     end -- function
                                             
-}) -- chatcommand search
+}) -- chatcommand prospector_search_node
 
-minetest.register_chatcommand("set_radius", {
+minetest.register_chatcommand("prospector_set_radius", {
 
     params = "<> | <radius>",
     description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
@@ -353,9 +403,9 @@ minetest.register_chatcommand("set_radius", {
     
     end -- function
                                         
-}) -- chatcommand set_radius
+}) -- chatcommand prospector_set_radius
     
-minetest.register_chatcommand("set_node", {
+minetest.register_chatcommand("prospector_set_node", {
         
     params = "<> | <Node> | <-i> index",
     description = "Set's a new Node for search.\nUsage:\n<> shows the current Node for search.\n<Node> set's a new Node.\n<-i> index set's a new Node for search from the Nodelist.\n",
@@ -402,159 +452,36 @@ minetest.register_chatcommand("set_node", {
                                 
     end
 
-}) -- chatcommand pos2marker
+}) -- chatcommand prospector_set_node
 
-minetest.register_chatcommand("pos2marker", {
-
-    params = "<>",
-    description = "Transfers the LastPos to the Marker.\nUsage:\n<> Transfers the last found to the Marker.\n",
+minetest.register_chatcommand("prospector_send_lastpos",{
+    param = "<>",
+    description = "Send's the last Position to the Mod Distancer.",
     func = function()
-        if(prospector.last_pos ~= "") then
-                prospector.marker = minetest.string_to_pos(prospector.last_pos)
-                prospector.print(prospector.green .. "Last Position to Marker transfered.\n")
-                                            
+        if(prospector.distancer_channel ~= nil) then
+            if(prospector.distancer_channel:is_writeable()) then
+                prospector.distancer_channel:send_all("Test ...")
+                                                             
+            else
+                prospector.print(prospector.red .. "Modchannel not writeable.\n")
+                                                             
+            end -- if(prospector.distancer_channel:is_writeable
+        
         else
-                prospector.print(prospector.red .. "No valid Position as last Positon found.\n")
-                                            
-        end -- if(prospector.last_pos ~= nil
-                                            
-    end -- function
-                                            
-}) -- chatcommand searc
-    
-minetest.register_chatcommand("who_is", {
-
-    params = "<>",
-    description = "Shows you all online Playernames.\nUsage:\n<> shows you all Playernames.\n",
-    func = function()
-    
-        local online = minetest.get_player_names()
-        if(online == nil) then 
-                prospector.print(prospector.green .. "No Player is online?\n")
-                return
-                                        
-        else
-            table.sort(online)
-    
-        end
-                                            
-        prospector.print(prospector.green .. "Player now online:\n")
-                                        
-        for pl, name in pairs(online) do
-            prospector.print(prospector.green .. pl .. ": " .. prospector.orange .. name .. "\n")
-        
-        end -- for
-    end -- function
-                                            
-}) -- chatcommand searc
-
-minetest.register_chatcommand("show_mapblock",{
-
-    params = "<>",
-    description = "Shows the current Mapblock, where you are.",
-    func = function()
-        
-        local mypos = prospector.you:get_pos()
-        local x = math.floor(mypos.x+0.5)
-        local y = math.floor(mypos.y+0.5)
-        local z = math.floor(mypos.z+0.5)
-    
-        local pos_string = math.floor(x / 16) .. "." .. math.floor(y / 16) .. "." .. math.floor(z / 16)
-        
-        prospector.print(prospector.green .. "Current Mapblocknumber: (" .. prospector.orange .. pos_string .. prospector.green .. ")\n")
-    end -- function
-                                              
-}) -- chatcommand show_mapblock
-
-minetest.register_chatcommand("marker",{
-
-    params = "<> | -s | -m | -p | -w X,Y,Z",
-    description = "\n<> shows you the stored Marker.\n-s - Set's the Marker to your current Position.\n-m - Shows the Distance from your Marker.\n-p - Shows the Distance from your Marker as Vector\n-w X,Y,Z - Set's the Marker to X,Y,Z",
-    func = function(param)
-        
-        local parameter = param:lower()
-        local command = {}
-        
-        command = prospector.split(parameter)
-        local current_position = prospector.you:get_pos()
-        current_position = prospector.convert_position(current_position)
-                                         
-        -- No Node or Index given
-        if(command[1] == nil or command[1] == "") then
-            if(prospector.marker ~= nil) then
-                                         
-                prospector.print(prospector.green .. "Current Marker is @ " .. prospector.orange .. minetest.pos_to_string(prospector.marker))
-                                         
-            else
-                prospector.print(prospector.green .. "Current Marker is " .. prospector.orange .. " not set.\n")
-                                 
-            end -- if(prospector.marker ~=
-    
-        elseif(command[1] == "-s") then
-            prospector.marker = current_position
-            prospector.print(prospector.green .. "Marker set to " .. prospector.orange .. minetest.pos_to_string(prospector.marker))
-                                         
-        elseif(command[1] == "-m") then
-            if(prospector.marker ~= nil) then
-                                         
-                prospector.print(prospector.green .. "Current Marker is @ " .. prospector.yellow .. minetest.pos_to_string(prospector.marker))
-                prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
-                                         
-                local distance = math.floor(vector.distance(current_position, prospector.marker))
-                                         
-                prospector.print(prospector.green .. "You are " .. prospector.light_blue .. distance .. prospector.green .. " Nodes far away.")
-                                         
-            else
-                                         
-                prospector.print(prospector.green .. "Current Marker is " .. prospector.orange .. " not set " .. prospector.green .. " to calculate a Distance.\n")
-                                         
-            end -- if(prospector.marker ~= nil
-        
-        elseif(command[1] == "-w") then
-            
-            if(command[2] == nil or command[2] == "") then
-                prospector.print(prospector.red .. "No Position to set Marker given.\n")
-                                         
-            else
-                if(tonumber(command[2]) ~= nil and tonumber(command[3]) ~= nil and tonumber(command[4]) ~= nil) then
-                    local new_marker = "(" .. tonumber(command[2]) .. "," .. tonumber(command[3]) .. "," .. tonumber(command[4]) .. ")"
-                    prospector.print(prospector.green .. "Marker set to : " .. prospector.orange .. new_marker .. "\n")
-                    prospector.marker = minetest.string_to_pos(new_marker)
-                    prospector.marker = prospector.convert_position(prospector.marker)
-                                         
-                else
-                    prospector.print(prospector.red .. "Wrong Position(format) given.\n")
-                                                                                       
-                end -- if(command[3] .. command[4]
-                                                                                       
-            end -- if(command[2] ~= nil
-                                         
-        elseif(command[1] == "-p") then                                         
-            
-            if(prospector.marker ~= nil) then
-                    local distance = prospector.calc_distance_pos(prospector.marker, current_position)
-                    prospector.print(prospector.green .. "Current Marker is @ " .. prospector.yellow .. minetest.pos_to_string(prospector.marker))
-                    prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
-                    prospector.print(prospector.green .. "The Distance between them is: " .. prospector.white .. minetest.pos_to_string(distance))
-                    prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.x .. prospector.green .. " Steps at X-Axis.")
-                    prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.y .. prospector.green .. " Steps at Y-Axis.")
-                    prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.z .. prospector.green .. " Steps at Z-Axis.")
-            else
-                prospector.print(prospector.red .. "No Marker set.\n")
-                                                                                       
-            end -- if(prospector.marker ~= nil
-                                         
-        end -- if(command[1] ==
-                                        
-    end -- function
-                                              
-}) -- chatcommand show_mapblock
+            prospector.print(prospector.red .. "No Modchannel open.\n")
+            prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
+                                                        
+        end -- if(prospector.distancer_channel 
+                                                             
+    end -- func
+                                                            
+}) -- chatcommand prospector_send_lastpos
 
 minetest.register_chatcommand("prospector_version",{
     
     params = "<>",
     description = "Shows the current Revision of Prospector.",
-    func = function ()
+    func = function()
         
         prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
         
