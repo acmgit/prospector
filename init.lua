@@ -1,7 +1,16 @@
+--[[
+   ****************************************************************
+   *******                    Prospector                     ******
+   *******    A CS-Mod to search for Nodes in Minetest       ******
+   *******                  License: GPL 3.0                 ******
+   *******                     by A.C.M.                     ******
+   ****************************************************************
+--]]
+
 local prospector = {}
 
 prospector.version = 2
-prospector.revision = 0
+prospector.revision = 1
 
 prospector.you = nil -- Player
 prospector.searchRadius = 100
@@ -106,7 +115,7 @@ end -- function check_node
 
 function prospector.add_node(node)
     
-    if(prospector.pnodelist =~ nil) then
+    if(type(prospector.pnodelist) ~= "table") then
         prospector.pnodelist = {}
         table.insert(prospector.pnodelist, node)
         
@@ -165,13 +174,16 @@ function prospector.calc_distance_pos(pos_1, pos_2)
 end -- function calc_distance_pos
 
 function prospector.split(parameter)
-        local cmd = {}
+    local cmd = {}
+    if(parameter ~= "" or parameter ~= nil) then
         for word in string.gmatch(parameter, "[%w%-%:%_]+") do
             table.insert(cmd, word)
             
         end -- for word
         
-        return cmd
+    end -- if(parameter ~=
+        
+    return cmd
         
 end -- function prospector.split
 
@@ -221,10 +233,152 @@ function prospector.convert_position(pos)
     return nil
 end -- function convert_position
 
-function prospector.handle_message(sender, message)
-    prospector.print(prospector.green .. "Prospectormessage from " .. prospector.orange .. sender .. prospector.green .. " received.\n")
+function prospector.pnode_lastpos(cmd)
+    local command = prospector.split(cmd)
+    if(command[1] == nil or command[1] == "") then
+        if(prospector.last_pos ~= "") then
+            prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.last_pos .. prospector.green .. ".\n")
+            prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
+        else
+            prospector.print(prospector.red .. "There is no last Found set.\n")
+                                          
+        end -- if(prospector.last_pos ~= nil
+                                               
+    elseif(command[1] == "-s") then
+        if(prospector.distancer_channel ~= nil) then
+            if(prospector.distancer_channel:is_writeable()) then
+                prospector.distancer_channel:send_all("POS:" .. prospector.last_pos)
+                prospector.print(prospector.green .. "Position: " .. prospector.orange .. prospector.last_pos .. prospector.green .. " send to Distancer.\n")
+                                                             
+            else
+                prospector.print(prospector.red .. "Modchannel not writeable.\n")
+                                                             
+            end -- if(prospector.distancer_channel:is_writeable
+        
+        else
+            prospector.print(prospector.red .. "No Modchannel open.\n")
+            prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
+                                                        
+        end -- if(prospector.distancer_channel 
+                
+    end -- if(command[1]
+            
+end -- prospector.pnode_lastpos
 
-end -- distancer.handle_message
+function prospector.pnode_search(cmd)
+    if(cmd == "" or cmd == nil) then
+        if(prospector.current_Node == "" or prospector.current_Node == nil) then
+            prospector.print(prospector.green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
+            return                            
+                                        
+        else
+            prospector.search_node(prospector.current_Node)
+            return                  
+                                        
+        end --if(prospector.current_Node
+    end
+         
+    local command = prospector.split(cmd)
+    if(command[1] == "-i") then -- command Index found
+        local idx = tonumber(command[2])
+        if(idx ~= nil) then -- valid Index
+            local node = prospector.pnodelist[idx]
+            if(node ~= nil or node ~= "") then -- valid Node found
+                prospector.search_node(node)
+                return
+                                        
+            else
+                
+                prospector.print(prospector.red .. "No Node found at Index " .. prospector.yellow .. idx .. prospector.red .. ".\n")
+                return
+                                        
+            end -- if( node ~=
+                                        
+        else
+            prospector.print(prospector.red .. "Invalid Indexnumber.\n")
+            return
+                                        
+        end --(if(idx ~=
+                                        
+    end -- if(command[1]
+        
+    -- Param isn't empty and not the Command -i, so it's a Node
+    prospector.search_node(cmd)
+    
+end -- prospector.pnode_serach
+
+function prospector.pnode_setradius(cmd)
+    if(cmd == nil) then
+        prospector.print(prospector.red .. "Illegal Radius.\n")
+        return
+                
+    end -- if(cmd == nil
+                                            
+    local radius = tonumber(cmd:trim())
+    prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
+    prospector.print(prospector.green .. " Max Radius = " .. prospector.red .. prospector.maxRadius .. prospector.green .. ".\n")
+                                            
+    if(radius ~= nil and radius > 0 and radius <= prospector.maxRadius) then
+        prospector.searchRadius = radius
+        prospector.print(prospector.green .. " New Radius set to " .. prospector.yellow .. prospector.searchRadius .. prospector.green ..".\n")
+                                            
+    else
+        prospector.print(prospector.red .. "Illegal Radiusnumber.\n")
+                                            
+    end -- if(radius ~= nil
+
+end -- prospector.pnode_setradius
+
+function prospector.pnode_set(cmd)
+    local command = {}
+    command = prospector.split(cmd)
+                                                                                
+    -- No Node or Index given
+    if(command[1] == nil or command[1] == "") then
+        prospector.set_node("")
+        return
+                                          
+    end -- if(command[1] == nil
+        
+    -- Command Index found
+    if(command[1] == "-i") then
+        local idx = tonumber(command[2])
+                                 
+        if(idx ~= nil) then
+            local node = prospector.pnodelist[idx]
+            if(node ~= nil or node ~= "") then
+                prospector.set_node(node)
+            return
+                                
+            else -- No Node at this Index found.
+                prospector.print(prospector.red .. "Wrong Indexnumber.\n")
+                return
+                                
+            end -- if(node ~= nil
+                        
+        else -- Illegal Index found, should not happen
+            prospector.print(prospector.red .. "Illegal Indexnumber entered.")
+            return
+                                
+        end -- if(idx ~nil)
+            
+    end -- if(command[1]
+        
+    -- No empty Param, no Index found, so it's a Node and set it
+    prospector.set_node(command[1]) 
+
+end -- prospector.pnode_set
+
+function prospector.version()
+    prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
+
+end -- function prospector.version
+    
+--[[
+   ****************************************************************
+   *******        Functions for HUD of Prospector            ******
+   ****************************************************************
+--]]
 
 function prospector.handle_channel_event(channel, msg)
     local report = ""
@@ -255,7 +409,92 @@ function prospector.handle_channel_event(channel, msg)
     end -- if(msg ~= 0
     
 end -- function prospector.handle_channel_event(
+
+function prospector.handle_message(sender, message)
+    prospector.print(prospector.green .. "Prospectormessage from " .. prospector.orange .. sender .. prospector.green .. " received.\n")
+    prospector.print(prospector.green .. "Message: " .. prospector.orange .. message .. prospector.green .. " .\n")
+    
+end -- distancer.handle_message
+
+--[[
+   ****************************************************************
+   *******        Registered Chatcommands                    ******
+   ****************************************************************
+--]]
+
+minetest.register_chatcommand("pnode_lastpos", {
+
+    params = "<> | -s",
+    description = "Shows you the last Position of a found Node.\nUsage:\n<> shows you the last Position.\n-s Sends the last Position to Distancer",
+    func = function(param)
+        local cmd = param:lower()       
+        prospector.pnode_lastpos(cmd)
+                                            
+    end -- function
+                                            
+}) -- chatcommand prospector_last_pos
+
+minetest.register_chatcommand("pnode_list", {
+
+    params = "<> | <searchpattern>",
+    description = "Shows you all successfully found Nodes.\nUsage:\n<> Shows you the whole Nodelist with Index.\n<searchpattern> Shows you a filtered Nodelist with <searchpattern>.\n",
+    func = function(param)
+        if(param == nil) then param = "" end
+        local cmd = param:lower()        
+        prospector.show_nodelist(cmd)
+                                            
+    end -- function
+                                            
+}) -- chatcommand prospector_show_nodelist
+
+minetest.register_chatcommand("pnode_search", {
+
+    params = "<> | <Node> | <-i> index",
+    description = "Shows you the given Nodes in a Radius of <.set_radius>.\nUsage:\n<> searches for the set node with command .set_node\n<Node> search for <Node>\n<-i> index searches for Node in the Nodelist.\n",
+    func = function(param)
+        local cmd = param:lower()        
+        prospector.pnode_search(cmd)
+                                              
+    end -- function
+                                            
+}) -- chatcommand prospector_search_node
+
+minetest.register_chatcommand("pnode_radius", {
+
+    params = "<> | <radius>",
+    description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
+    func = function(param)
+        prospector.pnode_setradius(cmd)    
+    
+    end -- function
+                                        
+}) -- chatcommand prospector_set_radius
+    
+minetest.register_chatcommand("pnode_set", {
         
+    params = "<> | <Node> | <-i> index",
+    description = "Set's a new Node for search.\nUsage:\n<> shows the current Node for search.\n<Node> set's a new Node.\n<-i> index set's a new Node for search from the Nodelist.\n",
+    func = function(param)
+        local cmd = param:lower()
+        print(cmd)
+        prospector.pnode_set(cmd)
+                                
+    end -- func
+
+}) -- chatcommand prospector_set_node
+
+minetest.register_chatcommand("prospector_version",{
+    
+    params = "<>",
+    description = "Shows the current Revision of Prospector.",
+    func = function()
+        prospector.version()
+        
+    end -- function
+
+}) -- chatcommand prospector_version
+        
+       
 --[[
    ****************************************************************
    *******        Main for Prospector                        ******
@@ -264,9 +503,6 @@ end -- function prospector.handle_channel_event(
 
 -- Get yourself
 prospector.you = minetest.localplayer
-
--- Join to shared Modchannel
-prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
 
 prospector.nodestring = prospector.storage:get_string("nodes") -- Get the Nodelist as String
 if(prospector.nodestring ~= nil) then
@@ -279,217 +515,15 @@ else
     
 end
 
+-- Join to shared Modchannel
+prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
+
 minetest.register_on_modchannel_signal(function(channelname, signal)
             prospector.handle_channel_event(channelname, signal)
                                       
 end) -- minetest.register_on_modchannel_signal(
 
 minetest.register_on_modchannel_message(function(channelname, sender, message)
-    if(channelname == prospector.distancer_channelname) then
         prospector.handle_message(sender, message)
-                                        
-    end -- if(channelname ==
-                                        
-end) -- minetest.register_on_mod_channel_message
-
---[[
-   ****************************************************************
-   *******        Registered Chatcommands                    ******
-   ****************************************************************
---]]
-
-minetest.register_chatcommand("prospector_show_lastpos", {
-
-    params = "<>",
-    description = "Shows you the last Position of a found Node.\nUsage:\n<> shows you the last Position.\n",
-    func = function()
-        
-        if(prospector.last_pos ~= "") then
-            prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.last_pos .. prospector.green .. ".\n")
-            prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
-        else
-            prospector.print(prospector.red .. "There is no last Found set.\n")
-                                          
-        end
-                                          
-                                            
-    end -- function
-                                            
-}) -- chatcommand prospector_last_pos
-
-minetest.register_chatcommand("prospector_show_nodelist", {
-
-    params = "<> | <searchpattern>",
-    description = "Shows you all successfully found Nodes.\nUsage:\n<> Shows you the whole Nodelist with Index.\n<searchpattern> Shows you a filtered Nodelist with <searchpattern>.\n",
-    func = function(param)
-        if(param == nil) then param = "" end
-        prospector.show_nodelist(param)
-                                            
-    end -- function
-                                            
-}) -- chatcommand prospector_show_nodelist
-
-minetest.register_chatcommand("prospector_search_node", {
-
-    params = "<> | <Node> | <-i> index",
-    description = "Shows you the given Nodes in a Radius of <.set_radius>.\nUsage:\n<> searches for the set node with command .set_node\n<Node> search for <Node>\n<-i> index searches for Node in the Nodelist.\n",
-    func = function(param)
-
-        local parameter = param:lower()
-        if(parameter == "" or parameter == nil) then
-            if(prospector.current_Node == "") then
-                prospector.print(prospector.green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
-                return                            
-                                        
-            else
-                prospector.search_node(prospector.current_Node)
-                return                  
-                                        
-            end --if(prospector.current_Node
-        end
-         
-        local command = prospector.split(parameter)
-        if(command[1] == "-i") then -- command Index found
-            local idx = tonumber(command[2])
-            if(idx ~= nil) then -- valid Index
-                local node = prospector.pnodelist[idx]
-                if(node ~= nil or node ~= "") then -- valid Node found
-                    prospector.search_node(node)
-                    return
-                                        
-                else
-                    prospector.print(prospector.red .. "No Node found at Index " .. prospector.yellow .. idx .. prospector.red .. ".\n")
-                    return
-                                        
-                end -- if( node ~=
-                                        
-            else
-                prospector.print(prospector.red .. "Invalid Indexnumber.\n")
-                return
-                                        
-            end --(if(idx ~=
-                                        
-        end -- if(command[1]
-        
-        -- Param isn't empty and not the Command -i, so it's a Node
-        prospector.search_node(parameter)
-        
-    end -- function
-                                            
-}) -- chatcommand prospector_search_node
-
-minetest.register_chatcommand("prospector_set_radius", {
-
-    params = "<> | <radius>",
-    description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
-    func = function(param)
-        
-        if(param == nil) then
-                prospector.print(prospector.red .. "Illegal Radius.\n")
-                return
-        end
-                                            
-        local radius = tonumber(param:trim())
-        prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
-        prospector.print(prospector.green .. " Max Radius = " .. prospector.red .. prospector.maxRadius .. prospector.green .. ".\n")
-                                            
-        if(radius ~= nil and radius > 0 and radius <= prospector.maxRadius) then
-            prospector.searchRadius = radius
-            prospector.print(prospector.green .. " New Radius set to " .. prospector.yellow .. prospector.searchRadius .. prospector.green ..".\n")
-                                            
-        else
-            prospector.print(prospector.red .. "Illegal Radiusnumber.\n")
-                                            
-        end
-    
-    end -- function
-                                        
-}) -- chatcommand prospector_set_radius
-    
-minetest.register_chatcommand("prospector_set_node", {
-        
-    params = "<> | <Node> | <-i> index",
-    description = "Set's a new Node for search.\nUsage:\n<> shows the current Node for search.\n<Node> set's a new Node.\n<-i> index set's a new Node for search from the Nodelist.\n",
-    func = function(param)
-                      
-        local parameter = param:lower()
-        local command = {}
-        
-        command = prospector.split(parameter)
                                                                                 
-        -- No Node or Index given
-        if(command[1] == nil or command[1] == "") then
-            prospector.set_node("")
-            return
-                                          
-        end -- if(command[1] == nil
-        
-        -- Command Index found
-        if(command[1] == "-i") then
-            local idx = tonumber(command[2])
-                                 
-            if(idx ~= nil) then
-                local node = prospector.pnodelist[idx]
-                if(node ~= nil or node ~= "") then
-                    prospector.set_node(node)
-                    return
-                                
-                else -- No Node at this Index found.
-                    prospector.print(prospector.red .. "Wrong Indexnumber.\n")
-                    return
-                                
-                end -- if(node ~= nil
-                        
-            else -- Illegal Index found, should not happen
-                prospector.print(prospector.red .. "Illegal Indexnumber entered.")
-                return
-                                
-            end -- if(idx ~nil)
-            
-        end -- if(command[1]
-        
-        -- No empty Param, no Index found, so it's a Node and set it
-        prospector.set_node(command[1]) 
-                                
-    end
-
-}) -- chatcommand prospector_set_node
-
-minetest.register_chatcommand("prospector_send_lastpos",{
-    param = "<>",
-    description = "Send's the last Position to the Mod Distancer.",
-    func = function()
-        if(prospector.distancer_channel ~= nil) then
-            if(prospector.distancer_channel:is_writeable()) then
-                prospector.distancer_channel:send_all("Test ...")
-                                                             
-            else
-                prospector.print(prospector.red .. "Modchannel not writeable.\n")
-                                                             
-            end -- if(prospector.distancer_channel:is_writeable
-        
-        else
-            prospector.print(prospector.red .. "No Modchannel open.\n")
-            prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
-                                                        
-        end -- if(prospector.distancer_channel 
-                                                             
-    end -- func
-                                                            
-}) -- chatcommand prospector_send_lastpos
-
-minetest.register_chatcommand("prospector_version",{
-    
-    params = "<>",
-    description = "Shows the current Revision of Prospector.",
-    func = function()
-        
-        prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
-        
-    end -- function
-
-}) -- chatcommand prospector_version
-        
-       
-   
-                                                    
+end) -- minetest.register_on_mod_channel_message
