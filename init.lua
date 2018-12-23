@@ -63,7 +63,7 @@ function prospector.show_nodelist(pattern)
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " .. prospector.orange .. pattern .. prospector.green .. ".\n")
         local count = 0
-        if(prospector.nodelist ~= nil) then
+        if(prospector.nodelist == nil) then
             for idx,entry in ipairs(prospector.pnodelist) 
             do
                 local hit = string.find(entry, pattern)
@@ -308,10 +308,16 @@ function prospector.pnode_search(cmd)
 end -- prospector.pnode_serach
 
 function prospector.pnode_setradius(cmd)
-    if(cmd == nil) then
-        prospector.print(prospector.red .. "Illegal Radius.\n")
-        return
-                
+    if(cmd == nil or cmd == "") then
+        if(prospector.searchRadius ~= nil or prospector.searchRadius ~= "") then
+            prospector.print(prospector.green .. "Current Radius is set to: " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
+            return
+        else
+            prospector.print(prospector.red .. "Illegal Radiusnumber set. Set a new Number.\n")
+            return
+            
+        end -- if(prospector.searchRadius ~= nil
+        
     end -- if(cmd == nil
                                             
     local radius = tonumber(cmd:trim())
@@ -376,7 +382,7 @@ end -- function prospector.version
     
 --[[
    ****************************************************************
-   *******        Functions for HUD of Prospector            ******
+   *******    Functions for MOD-Channel of Prospector        ******
    ****************************************************************
 --]]
 
@@ -515,13 +521,13 @@ else
     
 end
 
--- Join to shared Modchannel
-prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
-
 minetest.register_on_modchannel_signal(function(channelname, signal)
             prospector.handle_channel_event(channelname, signal)
                                       
 end) -- minetest.register_on_modchannel_signal(
+
+-- Join to shared Modchannel
+prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
 
 minetest.register_on_modchannel_message(function(channelname, sender, message)
         prospector.handle_message(sender, message)
