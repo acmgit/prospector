@@ -63,7 +63,7 @@ function prospector.show_nodelist(pattern)
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " .. prospector.orange .. pattern .. prospector.green .. ".\n")
         local count = 0
-        if(prospector.nodelist == nil) then
+        if(prospector.pnodelist == nil) then
             for idx,entry in ipairs(prospector.pnodelist) 
             do
                 local hit = string.find(entry, pattern)
@@ -516,18 +516,20 @@ if(prospector.nodestring ~= nil) then
     prospector.print(prospector.green .. "Nodelist loaded.\n")
     
 else
-    prospector.nodelist = ""
+    prospector.pnodelist = {}
     prospector.print(prospector.red .. "No Nodelist found.\n")
     
 end
+
+-- Join to shared Modchannel
+prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
 
 minetest.register_on_modchannel_signal(function(channelname, signal)
             prospector.handle_channel_event(channelname, signal)
                                       
 end) -- minetest.register_on_modchannel_signal(
 
--- Join to shared Modchannel
-prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
+
 
 minetest.register_on_modchannel_message(function(channelname, sender, message)
         prospector.handle_message(sender, message)
