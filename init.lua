@@ -63,7 +63,7 @@ function prospector.show_nodelist(pattern)
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " .. prospector.orange .. pattern .. prospector.green .. ".\n")
         local count = 0
-        if(prospector.pnodelist == nil) then
+        if(prospector.pnodelist ~= nil) then
             for idx,entry in ipairs(prospector.pnodelist) 
             do
                 local hit = string.find(entry, pattern)
