@@ -131,6 +131,11 @@ function prospector.search_node(node)
         prospector.print(prospector.green .. " No Nodename given!\n")
                                             
     else
+        if(prospector.you == nil) then
+            prospector.you = minetest.localplayer
+            
+        end -- if(prospector.you
+            
         prospector.print(prospector.green .. "Searching for " .. prospector.yellow .. node .. prospector.green .. ".\n")
         local nodes = {}
         nodes = minetest.find_node_near(prospector.you:get_pos(), prospector.searchRadius, node)
