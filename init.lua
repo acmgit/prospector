@@ -380,7 +380,7 @@ function prospector.pnode_set(cmd)
 
 end -- prospector.pnode_set
 
-function prospector.version()
+function prospector.pnode_version()
     prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
 
 end -- function prospector.version
@@ -452,7 +452,7 @@ minetest.register_chatcommand("pnode_list", {
     func = function(param)
         if(param == nil) then param = "" end
         local cmd = param:lower()        
-        prospector.show_nodelist(cmd)
+        prospector.pnode_list(cmd)
                                             
     end -- function
                                             
@@ -470,7 +470,7 @@ minetest.register_chatcommand("pnode_search", {
                                             
 }) -- chatcommand prospector_search_node
 
-minetest.register_chatcommand("pnode_radius", {
+minetest.register_chatcommand("pnode_setradius", {
 
     params = "<> | <radius>",
     description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
@@ -494,12 +494,12 @@ minetest.register_chatcommand("pnode_set", {
 
 }) -- chatcommand prospector_set_node
 
-minetest.register_chatcommand("prospector_version",{
+minetest.register_chatcommand("pnode_version",{
     
     params = "<>",
     description = "Shows the current Revision of Prospector.",
     func = function()
-        prospector.version()
+        prospector.pnode_version()
         
     end -- function
 
