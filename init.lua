@@ -10,7 +10,7 @@
 local prospector = {}
 
 prospector.version = 1
-prospector.revision = 2
+prospector.revision = 3
 
 prospector.you = nil -- Player
 prospector.searchRadius = 100
@@ -228,7 +228,7 @@ function prospector.convert_position(pos)
     return nil
 end -- function convert_position
 
-function prospector.last_pos()
+function prospector.pnode_lastpos()
     if(prospector.last_pos ~= "") then
         prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.last_pos .. prospector.green .. ".\n")
         prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
@@ -237,9 +237,9 @@ function prospector.last_pos()
                                           
     end -- if(prospcetor.last_pos
                                         
-end -- prospector.last_pos
+end -- prospector.lastpos
 
-function prospector.search_node(parameter)
+function prospector.pnode_search(parameter)
     if(parameter == "" or parameter == nil) then
         if(prospector.current_Node == "") then
             prospector.print(prospector.green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
@@ -280,28 +280,30 @@ function prospector.search_node(parameter)
     
 end -- prospector.search_node
 
-function prospector.set_radis(parameter)
-    if(parameter == nil) then
-            prospector.print(prospector.red .. "Illegal Radius.\n")
-            return
-    end
-                                            
-    local radius = tonumber(parameter:trim())
-    prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
-    prospector.print(prospector.green .. " Max Radius = " .. prospector.red .. prospector.maxRadius .. prospector.green .. ".\n")
-                                            
-    if(radius ~= nil and radius > 0 and radius <= prospector.maxRadius) then
+function prospector.pnode_setradius(parameter)
+    local radius = tonumber(parameter:trim()) or 0
+    
+    if(radius < 0 or radius > prospector.maxRadius) then
+        prospector.print(prospector.red .. "Illegal Radiusnumber: " .. prospector.orange .. radius .. prospector.red .. ".\n")
+        prospector.print(prospector.green .. "Min. Radius: " .. prospector.orange .. "1" .. prospector.green .. ".")
+        prospector.print(prospector.green .. "Max. Radius: " .. prospector.orange .. prospector.maxRadius .. prospector.green .. ".")
+        return
+            
+    end -- if(radius < 0
+        
+    if(radius > 0) then
+        prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
         prospector.searchRadius = radius
         prospector.print(prospector.green .. " New Radius set to " .. prospector.yellow .. prospector.searchRadius .. prospector.green ..".\n")
-                                            
+            
     else
-        prospector.print(prospector.red .. "Illegal Radiusnumber.\n")
-                                            
-    end
-    
+        prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
+            
+    end -- if(radius < 0
+                
 end -- prospector.set_radius
 
-function prospector.set_node(parameter)
+function prospector.pnode_set(parameter)
     local command = {}
         
     command = prospector.split(parameter)
@@ -340,9 +342,9 @@ function prospector.set_node(parameter)
     -- No empty Param, no Index found, so it's a Node and set it
     prospector.set_node(command[1]) 
 
-end -- prospector.set_node
+end -- prospector.set
 
-function prospector.pos2marker()
+function prospector.pnode_pos2mark()
     if(prospector.last_pos ~= "") then
         prospector.marker = minetest.string_to_pos(prospector.last_pos)
         prospector.print(prospector.green .. "Last Position to Marker transfered.\n")
@@ -354,7 +356,7 @@ function prospector.pos2marker()
     
 end -- prospector.pos2marker
 
-function prospector.who_is()
+function prospector.pnode_who_is()
     local online = minetest.get_player_names()
     if(online == nil) then 
             prospector.print(prospector.green .. "No Player is online?\n")
@@ -374,7 +376,7 @@ function prospector.who_is()
 
 end -- prospector.who_is
 
-function prospector.show_mapblock()
+function prospector.pnode_show_mb()
     local mypos = prospector.you:get_pos()
     local x = math.floor(mypos.x+0.5)
     local y = math.floor(mypos.y+0.5)
@@ -385,7 +387,7 @@ function prospector.show_mapblock()
 
 end -- prospector.show_mapblock
 
-function prospector.marker(parameter)
+function prospector.pnode_mark(parameter)
     local command = {}
         
     command = prospector.split(parameter)
@@ -462,7 +464,7 @@ function prospector.marker(parameter)
     
 end -- prospector.marker
 
-function prospector.version()
+function prospector.pnode_version()
     prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
 
 end -- prospector.version
@@ -495,17 +497,17 @@ end
    ****************************************************************
 --]]
 
-minetest.register_chatcommand("last_pos", {
+minetest.register_chatcommand("pnode_lastpos", {
 
     params = "<>",
     description = "Shows you the last Position of a found Node.\nUsage:\n<> shows you the last Position.\n",
     func = function()
-        prospector.last_pos()
+        prospector.pnode_lastpos()
     end -- function
                                             
 }) -- chatcommand prospector.last_pos
 
-minetest.register_chatcommand("show_nodelist", {
+minetest.register_chatcommand("pnode_list", {
 
     params = "<> | <searchpattern>",
     description = "Shows you all successfully found Nodes.\nUsage:\n<> Shows you the whole Nodelist with Index.\n<searchpattern> Shows you a filtered Nodelist with <searchpattern>.\n",
@@ -517,95 +519,96 @@ minetest.register_chatcommand("show_nodelist", {
                                             
 }) -- chatcommand search_for
 
-minetest.register_chatcommand("search_node", {
+minetest.register_chatcommand("pnode_search", {
 
     params = "<> | <Node> | <-i> index",
     description = "Shows you the given Nodes in a Radius of <.set_radius>.\nUsage:\n<> searches for the set node with command .set_node\n<Node> search for <Node>\n<-i> index searches for Node in the Nodelist.\n",
     func = function(param)
 
         local parameter = param:lower()
-        prospector.search_node(parameter)
+        prospector.pnode_search(parameter)
                                              
     end -- function
                                              
 }) -- chatcommand search
 
-minetest.register_chatcommand("set_radius", {
+minetest.register_chatcommand("pnode_setradius", {
 
     params = "<> | <radius>",
     description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
     func = function(param)
-        prospector.set_radius(param)
+        local parameter = param:lower()
+        prospector.pnode_setradius(parameter)
     
     end -- function
                                         
 }) -- chatcommand set_radius
     
-minetest.register_chatcommand("set_node", {
+minetest.register_chatcommand("pnode_set", {
         
     params = "<> | <Node> | <-i> index",
     description = "Set's a new Node for search.\nUsage:\n<> shows the current Node for search.\n<Node> set's a new Node.\n<-i> index set's a new Node for search from the Nodelist.\n",
     func = function(param)
                       
         local parameter = param:lower()
-        prospector.set_node(parameter)
+        prospector.pnode_set(parameter)
                                           
     end -- function
 
 }) -- chatcommand pos2marker
 
-minetest.register_chatcommand("pos2marker", {
+minetest.register_chatcommand("pnode_pos2mark", {
 
     params = "<>",
     description = "Transfers the LastPos to the Marker.\nUsage:\n<> Transfers the last found to the Marker.\n",
     func = function()
-        prospector.pos2marker()
+        prospector.pnode_pos2mark()
                                             
     end -- function
                                             
 }) -- chatcommand searc
     
-minetest.register_chatcommand("who_is", {
+minetest.register_chatcommand("pnode_who_is", {
 
     params = "<>",
     description = "Shows you all online Playernames.\nUsage:\n<> shows you all Playernames.\n",
     func = function()
-        prospector.who_is()
+        prospector.pnode_who_is()
                                         
     end -- function
                                             
 }) -- chatcommand searc
 
-minetest.register_chatcommand("show_mapblock",{
+minetest.register_chatcommand("pnode_show_mb",{
 
     params = "<>",
     description = "Shows the current Mapblock, where you are.",
     func = function()
-        prospector.show_mapblock()
+        prospector.pnode_show_mb()
                                               
     end -- function
                                               
 }) -- chatcommand show_mapblock
 
-minetest.register_chatcommand("marker",{
+minetest.register_chatcommand("pnode_mark",{
 
     params = "<> | -s | -m | -p | -w X,Y,Z",
     description = "\n<> shows you the stored Marker.\n-s - Set's the Marker to your current Position.\n-m - Shows the Distance from your Marker.\n-p - Shows the Distance from your Marker as Vector\n-w X,Y,Z - Set's the Marker to X,Y,Z",
     func = function(param)
         
         local parameter = param:lower()
-            prospector.marker(parameter)
+            prospector.pnode_mark(parameter)
                                        
     end -- function
                                               
 }) -- chatcommand show_mapblock
 
-minetest.register_chatcommand("prospector_version",{
+minetest.register_chatcommand("pnode_version",{
     
     params = "<>",
     description = "Shows the current Revision of Prospector.",
     func = function ()
-        prospector.version()
+        prospector.pnode_version()
                                                    
     end -- function
 
