@@ -131,7 +131,7 @@ function prospector.search_node(node)
         prospector.print(prospector.green .. " No Nodename given!\n")
                                             
     else
-        if(prospector.you == nil) then
+        if(prospector.you == nil) then -- Don't know why, but sometimes there is no localplayer registered at start.
             prospector.you = minetest.localplayer
             
         end -- if(prospector.you
