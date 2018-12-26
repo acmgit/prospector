@@ -218,6 +218,245 @@ function prospector.convert_position(pos)
     
     return nil
 end -- function convert_position
+
+function prospector.last_pos()
+    if(prospector.last_pos ~= "") then
+        prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.last_pos .. prospector.green .. ".\n")
+        prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
+    else
+        prospector.print(prospector.red .. "There is no last Found set.\n")
+                                          
+    end -- if(prospcetor.last_pos
+                                        
+end -- prospector.last_pos
+
+function prospector.search_node(parameter)
+    if(parameter == "" or parameter == nil) then
+        if(prospector.current_Node == "") then
+            prospector.print(prospector.green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
+            return                            
+                                        
+        else
+            prospector.search_node(prospector.current_Node)
+            return                  
+                                        
+        end --if(prospector.current_Node
+    end
+         
+    local command = prospector.split(parameter)
+    if(command[1] == "-i") then -- command Index found
+        local idx = tonumber(command[2])
+        if(idx ~= nil) then -- valid Index
+            local node = prospector.pnodelist[idx]
+            if(node ~= nil or node ~= "") then -- valid Node found
+                prospector.search_node(node)
+                return
+                                        
+            else
+                prospector.print(prospector.red .. "No Node found at Index " .. prospector.yellow .. idx .. prospector.red .. ".\n")
+                return
+                                        
+            end -- if( node ~=
+                                        
+        else
+            prospector.print(prospector.red .. "Invalid Indexnumber.\n")
+            return
+                                        
+        end --(if(idx ~=
+                                        
+    end -- if(command[1]
+        
+    -- Param isn't empty and not the Command -i, so it's a Node
+    prospector.search_node(parameter)
+    
+end -- prospector.search_node
+
+function prospector.set_radis(parameter)
+    if(parameter == nil) then
+            prospector.print(prospector.red .. "Illegal Radius.\n")
+            return
+    end
+                                            
+    local radius = tonumber(parameter:trim())
+    prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
+    prospector.print(prospector.green .. " Max Radius = " .. prospector.red .. prospector.maxRadius .. prospector.green .. ".\n")
+                                            
+    if(radius ~= nil and radius > 0 and radius <= prospector.maxRadius) then
+        prospector.searchRadius = radius
+        prospector.print(prospector.green .. " New Radius set to " .. prospector.yellow .. prospector.searchRadius .. prospector.green ..".\n")
+                                            
+    else
+        prospector.print(prospector.red .. "Illegal Radiusnumber.\n")
+                                            
+    end
+    
+end -- prospector.set_radius
+
+function prospector.set_node(parameter)
+    local command = {}
+        
+    command = prospector.split(parameter)
+                                                                                
+    -- No Node or Index given
+    if(command[1] == nil or command[1] == "") then
+        prospector.set_node("")
+        return
+                                          
+    end -- if(command[1] == nil
+        
+    -- Command Index found
+    if(command[1] == "-i") then
+        local idx = tonumber(command[2])
+                                 
+        if(idx ~= nil) then
+            local node = prospector.pnodelist[idx]
+            if(node ~= nil or node ~= "") then
+                prospector.set_node(node)
+                return
+                                
+            else -- No Node at this Index found.
+                prospector.print(prospector.red .. "Wrong Indexnumber.\n")
+                return
+                                
+            end -- if(node ~= nil
+                        
+        else -- Illegal Index found, should not happen
+            prospector.print(prospector.red .. "Illegal Indexnumber entered.")
+            return
+                                
+        end -- if(idx ~nil)
+            
+    end -- if(command[1]
+        
+    -- No empty Param, no Index found, so it's a Node and set it
+    prospector.set_node(command[1]) 
+
+end -- prospector.set_node
+
+function prospector.pos2marker()
+    if(prospector.last_pos ~= "") then
+        prospector.marker = minetest.string_to_pos(prospector.last_pos)
+        prospector.print(prospector.green .. "Last Position to Marker transfered.\n")
+                                            
+    else
+        prospector.print(prospector.red .. "No valid Position as last Positon found.\n")
+                                            
+    end -- if(prospector.last_pos ~= nil
+    
+end -- prospector.pos2marker
+
+function prospector.who_is()
+    local online = minetest.get_player_names()
+    if(online == nil) then 
+            prospector.print(prospector.green .. "No Player is online?\n")
+            return
+                                        
+    else
+        table.sort(online)
+    
+    end
+                                            
+    prospector.print(prospector.green .. "Player now online:\n")
+                                        
+    for pl, name in pairs(online) do
+        prospector.print(prospector.green .. pl .. ": " .. prospector.orange .. name .. "\n")
+        
+    end -- for
+
+end -- prospector.who_is
+
+function prospector.show_mapblock()
+    local mypos = prospector.you:get_pos()
+    local x = math.floor(mypos.x+0.5)
+    local y = math.floor(mypos.y+0.5)
+    local z = math.floor(mypos.z+0.5)
+    
+    local pos_string = math.floor(x / 16) .. "." .. math.floor(y / 16) .. "." .. math.floor(z / 16)
+    prospector.print(prospector.green .. "Current Mapblocknumber: (" .. prospector.orange .. pos_string .. prospector.green .. ")\n")
+
+end -- prospector.show_mapblock
+
+function prospector.marker(parameter)
+    local command = {}
+        
+    command = prospector.split(parameter)
+    local current_position = prospector.you:get_pos()
+    current_position = prospector.convert_position(current_position)
+                                         
+    -- No Node or Index given
+    if(command[1] == nil or command[1] == "") then
+        if(prospector.marker ~= nil) then
+                                         
+            prospector.print(prospector.green .. "Current Marker is @ " .. prospector.orange .. minetest.pos_to_string(prospector.marker))
+                                         
+        else
+            prospector.print(prospector.green .. "Current Marker is " .. prospector.orange .. " not set.\n")
+                                 
+        end -- if(prospector.marker ~=
+    
+    elseif(command[1] == "-s") then
+        prospector.marker = current_position
+        prospector.print(prospector.green .. "Marker set to " .. prospector.orange .. minetest.pos_to_string(prospector.marker))
+                                         
+    elseif(command[1] == "-m") then
+        if(prospector.marker ~= nil) then
+                                         
+            prospector.print(prospector.green .. "Current Marker is @ " .. prospector.yellow .. minetest.pos_to_string(prospector.marker))
+            prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
+                                         
+            local distance = math.floor(vector.distance(current_position, prospector.marker))
+                                         
+            prospector.print(prospector.green .. "You are " .. prospector.light_blue .. distance .. prospector.green .. " Nodes far away.")
+                                         
+        else
+                                         
+            prospector.print(prospector.green .. "Current Marker is " .. prospector.orange .. " not set " .. prospector.green .. " to calculate a Distance.\n")
+                                         
+        end -- if(prospector.marker ~= nil
+        
+    elseif(command[1] == "-w") then
+            
+        if(command[2] == nil or command[2] == "") then
+            prospector.print(prospector.red .. "No Position to set Marker given.\n")
+                                         
+        else
+            if(tonumber(command[2]) ~= nil and tonumber(command[3]) ~= nil and tonumber(command[4]) ~= nil) then
+                local new_marker = "(" .. tonumber(command[2]) .. "," .. tonumber(command[3]) .. "," .. tonumber(command[4]) .. ")"
+                prospector.print(prospector.green .. "Marker set to : " .. prospector.orange .. new_marker .. "\n")
+                prospector.marker = minetest.string_to_pos(new_marker)
+                prospector.marker = prospector.convert_position(prospector.marker)
+                                         
+            else
+                prospector.print(prospector.red .. "Wrong Position(format) given.\n")
+                                                                                       
+            end -- if(command[3] .. command[4]
+                                                                                       
+        end -- if(command[2] ~= nil
+                                         
+    elseif(command[1] == "-p") then                                         
+            
+        if(prospector.marker ~= nil) then
+            local distance = prospector.calc_distance_pos(prospector.marker, current_position)
+            prospector.print(prospector.green .. "Current Marker is @ " .. prospector.yellow .. minetest.pos_to_string(prospector.marker))
+            prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
+            prospector.print(prospector.green .. "The Distance between them is: " .. prospector.white .. minetest.pos_to_string(distance))
+            prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.x .. prospector.green .. " Steps at X-Axis.")
+            prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.y .. prospector.green .. " Steps at Y-Axis.")
+            prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.z .. prospector.green .. " Steps at Z-Axis.")
+            
+        else
+            prospector.print(prospector.red .. "No Marker set.\n")
+                                                                                       
+        end -- if(prospector.marker ~= nil
+                                         
+    end -- if(command[1] ==
+    
+end -- prospector.marker
+
+function prospector.version()
+    prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
+
+end -- prospector.version
 --[[
    ****************************************************************
    *******        Main for Prospector                        ******
@@ -252,16 +491,7 @@ minetest.register_chatcommand("last_pos", {
     params = "<>",
     description = "Shows you the last Position of a found Node.\nUsage:\n<> shows you the last Position.\n",
     func = function()
-        
-        if(prospector.last_pos ~= "") then
-            prospector.print(prospector.green .. "The last found was at: " .. prospector.orange .. prospector.last_pos .. prospector.green .. ".\n")
-            prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
-        else
-            prospector.print(prospector.red .. "There is no last Found set.\n")
-                                          
-        end
-                                          
-                                            
+        prospector.last_pos()
     end -- function
                                             
 }) -- chatcommand prospector.last_pos
@@ -285,46 +515,10 @@ minetest.register_chatcommand("search_node", {
     func = function(param)
 
         local parameter = param:lower()
-        if(parameter == "" or parameter == nil) then
-            if(prospector.current_Node == "") then
-                prospector.print(prospector.green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
-                return                            
-                                        
-            else
-                prospector.search_node(prospector.current_Node)
-                return                  
-                                        
-            end --if(prospector.current_Node
-        end
-         
-        local command = prospector.split(parameter)
-        if(command[1] == "-i") then -- command Index found
-            local idx = tonumber(command[2])
-            if(idx ~= nil) then -- valid Index
-                local node = prospector.pnodelist[idx]
-                if(node ~= nil or node ~= "") then -- valid Node found
-                    prospector.search_node(node)
-                    return
-                                        
-                else
-                    prospector.print(prospector.red .. "No Node found at Index " .. prospector.yellow .. idx .. prospector.red .. ".\n")
-                    return
-                                        
-                end -- if( node ~=
-                                        
-            else
-                prospector.print(prospector.red .. "Invalid Indexnumber.\n")
-                return
-                                        
-            end --(if(idx ~=
-                                        
-        end -- if(command[1]
-        
-        -- Param isn't empty and not the Command -i, so it's a Node
         prospector.search_node(parameter)
-        
+                                             
     end -- function
-                                            
+                                             
 }) -- chatcommand search
 
 minetest.register_chatcommand("set_radius", {
@@ -332,24 +526,7 @@ minetest.register_chatcommand("set_radius", {
     params = "<> | <radius>",
     description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
     func = function(param)
-        
-        if(param == nil) then
-                prospector.print(prospector.red .. "Illegal Radius.\n")
-                return
-        end
-                                            
-        local radius = tonumber(param:trim())
-        prospector.print(prospector.green .. " Current Radius = " .. prospector.orange .. prospector.searchRadius .. prospector.green .. ".\n")
-        prospector.print(prospector.green .. " Max Radius = " .. prospector.red .. prospector.maxRadius .. prospector.green .. ".\n")
-                                            
-        if(radius ~= nil and radius > 0 and radius <= prospector.maxRadius) then
-            prospector.searchRadius = radius
-            prospector.print(prospector.green .. " New Radius set to " .. prospector.yellow .. prospector.searchRadius .. prospector.green ..".\n")
-                                            
-        else
-            prospector.print(prospector.red .. "Illegal Radiusnumber.\n")
-                                            
-        end
+        prospector.set_radius(param)
     
     end -- function
                                         
@@ -362,45 +539,9 @@ minetest.register_chatcommand("set_node", {
     func = function(param)
                       
         local parameter = param:lower()
-        local command = {}
-        
-        command = prospector.split(parameter)
-                                                                                
-        -- No Node or Index given
-        if(command[1] == nil or command[1] == "") then
-            prospector.set_node("")
-            return
+        prospector.set_node(parameter)
                                           
-        end -- if(command[1] == nil
-        
-        -- Command Index found
-        if(command[1] == "-i") then
-            local idx = tonumber(command[2])
-                                 
-            if(idx ~= nil) then
-                local node = prospector.pnodelist[idx]
-                if(node ~= nil or node ~= "") then
-                    prospector.set_node(node)
-                    return
-                                
-                else -- No Node at this Index found.
-                    prospector.print(prospector.red .. "Wrong Indexnumber.\n")
-                    return
-                                
-                end -- if(node ~= nil
-                        
-            else -- Illegal Index found, should not happen
-                prospector.print(prospector.red .. "Illegal Indexnumber entered.")
-                return
-                                
-            end -- if(idx ~nil)
-            
-        end -- if(command[1]
-        
-        -- No empty Param, no Index found, so it's a Node and set it
-        prospector.set_node(command[1]) 
-                                
-    end
+    end -- function
 
 }) -- chatcommand pos2marker
 
@@ -409,14 +550,7 @@ minetest.register_chatcommand("pos2marker", {
     params = "<>",
     description = "Transfers the LastPos to the Marker.\nUsage:\n<> Transfers the last found to the Marker.\n",
     func = function()
-        if(prospector.last_pos ~= "") then
-                prospector.marker = minetest.string_to_pos(prospector.last_pos)
-                prospector.print(prospector.green .. "Last Position to Marker transfered.\n")
-                                            
-        else
-                prospector.print(prospector.red .. "No valid Position as last Positon found.\n")
-                                            
-        end -- if(prospector.last_pos ~= nil
+        prospector.pos2marker()
                                             
     end -- function
                                             
@@ -427,23 +561,8 @@ minetest.register_chatcommand("who_is", {
     params = "<>",
     description = "Shows you all online Playernames.\nUsage:\n<> shows you all Playernames.\n",
     func = function()
-    
-        local online = minetest.get_player_names()
-        if(online == nil) then 
-                prospector.print(prospector.green .. "No Player is online?\n")
-                return
+        prospector.who_is()
                                         
-        else
-            table.sort(online)
-    
-        end
-                                            
-        prospector.print(prospector.green .. "Player now online:\n")
-                                        
-        for pl, name in pairs(online) do
-            prospector.print(prospector.green .. pl .. ": " .. prospector.orange .. name .. "\n")
-        
-        end -- for
     end -- function
                                             
 }) -- chatcommand searc
@@ -453,15 +572,8 @@ minetest.register_chatcommand("show_mapblock",{
     params = "<>",
     description = "Shows the current Mapblock, where you are.",
     func = function()
-        
-        local mypos = prospector.you:get_pos()
-        local x = math.floor(mypos.x+0.5)
-        local y = math.floor(mypos.y+0.5)
-        local z = math.floor(mypos.z+0.5)
-    
-        local pos_string = math.floor(x / 16) .. "." .. math.floor(y / 16) .. "." .. math.floor(z / 16)
-        
-        prospector.print(prospector.green .. "Current Mapblocknumber: (" .. prospector.orange .. pos_string .. prospector.green .. ")\n")
+        prospector.show_mapblock()
+                                              
     end -- function
                                               
 }) -- chatcommand show_mapblock
@@ -473,79 +585,8 @@ minetest.register_chatcommand("marker",{
     func = function(param)
         
         local parameter = param:lower()
-        local command = {}
-        
-        command = prospector.split(parameter)
-        local current_position = prospector.you:get_pos()
-        current_position = prospector.convert_position(current_position)
-                                         
-        -- No Node or Index given
-        if(command[1] == nil or command[1] == "") then
-            if(prospector.marker ~= nil) then
-                                         
-                prospector.print(prospector.green .. "Current Marker is @ " .. prospector.orange .. minetest.pos_to_string(prospector.marker))
-                                         
-            else
-                prospector.print(prospector.green .. "Current Marker is " .. prospector.orange .. " not set.\n")
-                                 
-            end -- if(prospector.marker ~=
-    
-        elseif(command[1] == "-s") then
-            prospector.marker = current_position
-            prospector.print(prospector.green .. "Marker set to " .. prospector.orange .. minetest.pos_to_string(prospector.marker))
-                                         
-        elseif(command[1] == "-m") then
-            if(prospector.marker ~= nil) then
-                                         
-                prospector.print(prospector.green .. "Current Marker is @ " .. prospector.yellow .. minetest.pos_to_string(prospector.marker))
-                prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
-                                         
-                local distance = math.floor(vector.distance(current_position, prospector.marker))
-                                         
-                prospector.print(prospector.green .. "You are " .. prospector.light_blue .. distance .. prospector.green .. " Nodes far away.")
-                                         
-            else
-                                         
-                prospector.print(prospector.green .. "Current Marker is " .. prospector.orange .. " not set " .. prospector.green .. " to calculate a Distance.\n")
-                                         
-            end -- if(prospector.marker ~= nil
-        
-        elseif(command[1] == "-w") then
-            
-            if(command[2] == nil or command[2] == "") then
-                prospector.print(prospector.red .. "No Position to set Marker given.\n")
-                                         
-            else
-                if(tonumber(command[2]) ~= nil and tonumber(command[3]) ~= nil and tonumber(command[4]) ~= nil) then
-                    local new_marker = "(" .. tonumber(command[2]) .. "," .. tonumber(command[3]) .. "," .. tonumber(command[4]) .. ")"
-                    prospector.print(prospector.green .. "Marker set to : " .. prospector.orange .. new_marker .. "\n")
-                    prospector.marker = minetest.string_to_pos(new_marker)
-                    prospector.marker = prospector.convert_position(prospector.marker)
-                                         
-                else
-                    prospector.print(prospector.red .. "Wrong Position(format) given.\n")
-                                                                                       
-                end -- if(command[3] .. command[4]
-                                                                                       
-            end -- if(command[2] ~= nil
-                                         
-        elseif(command[1] == "-p") then                                         
-            
-            if(prospector.marker ~= nil) then
-                    local distance = prospector.calc_distance_pos(prospector.marker, current_position)
-                    prospector.print(prospector.green .. "Current Marker is @ " .. prospector.yellow .. minetest.pos_to_string(prospector.marker))
-                    prospector.print(prospector.green .. "Your Position is @ " .. prospector.orange .. minetest.pos_to_string(current_position))
-                    prospector.print(prospector.green .. "The Distance between them is: " .. prospector.white .. minetest.pos_to_string(distance))
-                    prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.x .. prospector.green .. " Steps at X-Axis.")
-                    prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.y .. prospector.green .. " Steps at Y-Axis.")
-                    prospector.print(prospector.green .. "You have to go " .. prospector.light_blue .. distance.z .. prospector.green .. " Steps at Z-Axis.")
-            else
-                prospector.print(prospector.red .. "No Marker set.\n")
-                                                                                       
-            end -- if(prospector.marker ~= nil
-                                         
-        end -- if(command[1] ==
-                                        
+            prospector.marker(parameter)
+                                       
     end -- function
                                               
 }) -- chatcommand show_mapblock
@@ -555,9 +596,8 @@ minetest.register_chatcommand("prospector_version",{
     params = "<>",
     description = "Shows the current Revision of Prospector.",
     func = function ()
-        
-        prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
-        
+        prospector.version()
+                                                   
     end -- function
 
 }) -- chatcommand prospector_version
