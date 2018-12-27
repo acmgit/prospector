@@ -310,7 +310,7 @@ function prospector.pnode_search(cmd)
     -- Param isn't empty and not the Command -i, so it's a Node
     prospector.search_node(cmd)
     
-end -- prospector.pnode_serach
+end -- prospector.pnode_search
 
 function prospector.pnode_setradius(cmd)
     if(cmd == nil or cmd == "") then
@@ -452,7 +452,7 @@ minetest.register_chatcommand("pnode_list", {
     func = function(param)
         if(param == nil) then param = "" end
         local cmd = param:lower()        
-        prospector.pnode_list(cmd)
+        prospector.show_nodelist(cmd)
                                             
     end -- function
                                             
