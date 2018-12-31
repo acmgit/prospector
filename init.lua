@@ -9,8 +9,9 @@
 
 local prospector = {}
 
+prospector.modname = "Prospector"
 prospector.version = 2
-prospector.revision = 1
+prospector.revision = 3
 
 prospector.you = nil -- Player
 prospector.searchRadius = 100
@@ -380,8 +381,8 @@ function prospector.pnode_set(cmd)
 
 end -- prospector.pnode_set
 
-function prospector.pnode_version()
-    prospector.print(prospector.green .. "Client-Side-Mod: Prospector " .. prospector.orange .. "v " .. prospector.version .. "." .. prospector.revision .. "\n")
+function prospector.show_version()
+    print("[CSM-MOD]" .. prospector.modname .. " v " .. prospector.version .. "." .. prospector.revision .. " loaded. \n")
 
 end -- function prospector.version
     
@@ -493,17 +494,6 @@ minetest.register_chatcommand("pnode_set", {
     end -- func
 
 }) -- chatcommand prospector_set_node
-
-minetest.register_chatcommand("pnode_version",{
-    
-    params = "<>",
-    description = "Shows the current Revision of Prospector.",
-    func = function()
-        prospector.pnode_version()
-        
-    end -- function
-
-}) -- chatcommand prospector_version
         
        
 --[[
@@ -540,3 +530,5 @@ minetest.register_on_modchannel_message(function(channelname, sender, message)
         prospector.handle_message(sender, message)
                                                                                 
 end) -- minetest.register_on_mod_channel_message
+
+prospector.show_version()
