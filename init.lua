@@ -11,7 +11,7 @@ local prospector = {}
 
 prospector.modname = "Prospector"
 prospector.version = 2
-prospector.revision = 3
+prospector.revision = 4
 
 prospector.you = nil -- Player
 prospector.searchRadius = 100
@@ -259,7 +259,7 @@ function prospector.pnode_lastpos(cmd)
                 
             end -- if(mylastpos ==
             
-            dst.send_pos(mylastpos)
+            dst.send_pos(prospector.you:get_name(), mylastpos)
                         
         else
             prospector.print(prospector.orange .. "No Distancer found or Version < 2.7.\n")
