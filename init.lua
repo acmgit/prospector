@@ -21,7 +21,7 @@ prospector.last_pos = ""
 prospector.pnodelist = {}
 prospector.nodestring = ""           -- String to load
 prospector.storage = minetest.get_mod_storage()
-prospector.distancer_channelname = "distancer"
+prospector.distancer_channelname = dst.channelname
 prospector.distancer_channel = nil
 
 -- Colors for Chat
@@ -250,7 +250,23 @@ function prospector.pnode_lastpos(cmd)
                                           
         end -- if(prospector.last_pos ~= nil
                                                
-    elseif(command[1] == "-s") then
+    elseif(command[1] == "-s") then -- Sends the last Position to distancer
+        
+        if(dst.ver == 2 and dst.rev >= 7) then
+            local mylastpos = prospector.last_pos
+            if(mylastpos == "") then
+                mylastpos = "0,0,0"
+                
+            end -- if(mylastpos ==
+            
+            dst.send_pos(mylastpos)
+                        
+        else
+            prospector.print(prospector.orange .. "No Distancer found or Version < 2.7.\n")
+            
+        end -- if(dst.ver
+        
+--[[
         if(prospector.distancer_channel ~= nil) then
             if(prospector.distancer_channel:is_writeable()) then
                 prospector.distancer_channel:send_all("POS:" .. prospector.last_pos)
@@ -266,7 +282,8 @@ function prospector.pnode_lastpos(cmd)
             prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
                                                         
         end -- if(prospector.distancer_channel 
-                
+]]--
+        
     end -- if(command[1]
             
 end -- prospector.pnode_lastpos
@@ -495,7 +512,7 @@ minetest.register_chatcommand("pnode_set", {
 
 }) -- chatcommand prospector_set_node
         
-       
+
 --[[
    ****************************************************************
    *******        Main for Prospector                        ******
@@ -517,18 +534,24 @@ else
 end
 
 -- Join to shared Modchannel
-prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
-
-minetest.register_on_modchannel_signal(function(channelname, signal)
+if(prospector.distancer_channelname ~= nil) then
+    prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
+    minetest.register_on_modchannel_signal(function(channelname, signal)
             prospector.handle_channel_event(channelname, signal)
                                       
-end) -- minetest.register_on_modchannel_signal(
+    end) -- minetest.register_on_modchannel_signal(
 
-
-
-minetest.register_on_modchannel_message(function(channelname, sender, message)
-        prospector.handle_message(sender, message)
+    minetest.register_on_modchannel_message(function(channelname, sender, message)
+            prospector.handle_message(sender, message)
                                                                                 
-end) -- minetest.register_on_mod_channel_message
+    end) -- minetest.register_on_mod_channel_message
+    
+    prospector.print(prospector.green .. "Channel for Distancer ready.\n")
+    prospector.distancer_channel:send_all("Testmessage .. ")
+    
+else
+    prospector.print(prospector.orange .. "No Channelname for Distancer found.\n")
 
+end -- if(prospector.distancer_channel
+    
 prospector.show_version()
