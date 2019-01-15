@@ -493,7 +493,7 @@ minetest.register_chatcommand("pnode_setradius", {
     params = "<> | <radius>",
     description = "Set's or shows you the the Radius for the command .search_for.\nUsage:\n<> Shows you the current Radius.\n<radius> set's a new Radius if valid.\n",
     func = function(param)
-        prospector.pnode_setradius(cmd)    
+        prospector.pnode_setradius(param)    
     
     end -- function
                                         
