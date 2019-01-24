@@ -411,9 +411,9 @@ end -- function prospector.version
 
 function prospector.handle_channel_event(channel, msg)
     local report = ""
-    if(msg ~= 0) then
+    if(msg >= 0) then
         if(msg == 0) then
-            report = prospector.orange .. " join with success.\n"
+            report = prospector.orange .. " joined with success.\n"
             
         elseif(msg == 1) then
             report = prospector.red .. " join failed.\n"
@@ -433,16 +433,19 @@ function prospector.handle_channel_event(channel, msg)
             report = prospector.red .. " unknown Event.\n"
         end
         
-        prospector.print(prospector.green .. "Prospectorchannel: " .. prospector.orange .. channel .. report)
+        prospector.print(prospector.green .. "[Prospector] Channel: " .. prospector.yellow .. channel .. prospector.green .. ": " .. prospector.orange .. report)
         
     end -- if(msg ~= 0
     
 end -- function prospector.handle_channel_event(
 
-function prospector.handle_message(sender, message)
-    prospector.print(prospector.green .. "Prospectormessage from " .. prospector.orange .. sender .. prospector.green .. " received.\n")
-    prospector.print(prospector.green .. "Message: " .. prospector.orange .. message .. prospector.green .. " .\n")
-    
+function prospector.handle_message(channelname, sender, message)
+  if(channelname == prospector.distancer_channelname) then
+      prospector.print(prospector.green .. "Message from " .. prospector.orange .. sender .. prospector.green .. " received.\n")
+      prospector.print(prospector.green .. "Message: " .. prospector.orange .. message .. prospector.green .. " .\n")
+      
+  end -- if(channelname
+  
 end -- distancer.handle_message
 
 --[[
@@ -536,22 +539,34 @@ end
 -- Join to shared Modchannel
 if(prospector.distancer_channelname ~= nil) then
     prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
-    minetest.register_on_modchannel_signal(function(channelname, signal)
-            prospector.handle_channel_event(channelname, signal)
+    minetest.register_on_modchannel_signal(function(channel, signal)
+            prospector.handle_channel_event(channel, signal)
                                       
     end) -- minetest.register_on_modchannel_signal(
 
-    minetest.register_on_modchannel_message(function(channelname, sender, message)
-            prospector.handle_message(sender, message)
+    minetest.register_on_modchannel_message(function(channel, sender, message)
+            prospector.handle_message(channel, sender, message)
                                                                                 
     end) -- minetest.register_on_mod_channel_message
-    
-    prospector.print(prospector.green .. "Channel for Distancer ready.\n")
-    prospector.distancer_channel:send_all("Testmessage .. ")
-    
+        
 else
     prospector.print(prospector.orange .. "No Channelname for Distancer found.\n")
 
 end -- if(prospector.distancer_channel
-    
+
+--[[
+minetest.after(5, function()
+      if(prospector.distancer_channel:is_writeable()) then
+        prospector.print(prospector.green .. "Modchannel is writeable.")
+        prospector.distancer_channel:send_all("Testmessage.")
+        
+      else
+        prospector.print(prospector.orange .. "Modchannel is writeprotected.")
+        
+      end -- if(prospector
+      
+  end -- function()
+  )
+  ]]--
+  
 prospector.show_version()
