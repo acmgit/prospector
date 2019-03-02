@@ -39,6 +39,8 @@ prospector.light_blue = minetest.get_color_escape_sequence('#8888FF')
 prospector.light_green = minetest.get_color_escape_sequence('#88FF88')
 prospector.light_red = minetest.get_color_escape_sequence('#FF8888')
 
+prospector.display_chat_message = minetest.display_chat_message
+
 --[[
    ****************************************************************
    *******        Functions for Prospector                   ******
@@ -127,6 +129,10 @@ function prospector.add_node(node)
     
 end -- function add_node
 
+local find_node = minetest.find_node_near
+local pos_to_string = minetest.pos_to_string
+local string_to_pos = minetest.string_to_pos
+
 function prospector.search_node(node)
     if(node == "") then 
         prospector.print(prospector.green .. " No Nodename given!\n")
@@ -139,10 +145,10 @@ function prospector.search_node(node)
             
         prospector.print(prospector.green .. "Searching for " .. prospector.yellow .. node .. prospector.green .. ".\n")
         local nodes = {}
-        nodes = minetest.find_node_near(prospector.you:get_pos(), prospector.searchRadius, node)
+        nodes = find_node(prospector.you:get_pos(), prospector.searchRadius, node)
                                             
         if(nodes ~= nil) then
-            prospector.print(prospector.green .. "Found at ".. prospector.orange .. minetest.pos_to_string(nodes) .. prospector.green .. ".\n")
+            prospector.print(prospector.green .. "Found at ".. prospector.orange .. pos_to_string(nodes) .. prospector.green .. ".\n")
             prospector.last_pos = minetest.pos_to_string(nodes)
             prospector.print(prospector.green .. "This is ".. prospector.yellow .. prospector.calc_distance() .. prospector.green .. " Nodes far away.\n")
             prospector.check_node(node)
@@ -159,7 +165,7 @@ function prospector.search_node(node)
 end -- function search_node()
 
 function prospector.calc_distance()
-    return math.floor(vector.distance(prospector.you:get_pos(), minetest.string_to_pos(prospector.last_pos)))
+    return math.floor(vector.distance(prospector.you:get_pos(), string_to_pos(prospector.last_pos)))
 
 end -- function calc_distance
 
@@ -221,7 +227,7 @@ function prospector.set_node(node)
 end -- function set_node
 
 function prospector.print(text)
-    minetest.display_chat_message(text)
+    prospector.display_chat_message(text)
     
 end -- function prospector.print(
 
