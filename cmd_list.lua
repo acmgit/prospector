@@ -1,6 +1,6 @@
 prospector.register_help({
-                            Name = "lastpos",
-                            Usage = ".prs lastpos <> | -s",
+                            Name = "list",
+                            Usage = ".prs list <> | <searchpattern>",
                             Description = "Shows you a list of all successfully found Nodes.",
                             Parameter = "<> | <searchpattern>" .. prospector.green .. "." ..
                                         "\n" .. prospector.orange .. "<>" ..
@@ -30,12 +30,12 @@ prospector["list"] = function(pattern)
 
     else
         prospector.print(prospector.green .. "Show the Nodelist only with: " ..
-        prospector.orange .. pattern .. prospector.green .. ".\n")
+        prospector.orange .. pattern[2] .. prospector.green .. ".\n")
         local count = 0
         if(prospector.pnodelist ~= nil) then
             for idx,entry in ipairs(prospector.pnodelist)
             do
-                local hit = string.find(entry, pattern)
+                local hit = string.find(entry, pattern[2])
                 if(hit ~= nil) then
                     prospector.print(prospector.yellow .. idx .. prospector.green .. ": " ..
                     prospector.orange .. entry .. prospector.green .."\n")

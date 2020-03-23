@@ -1,7 +1,7 @@
 prospector.register_help({
                             Name = "radius",
                             Usage = ".prs radius <> | <radius>",
-                            Description = "Set's or shows you the the Radius for the command .search_for.",
+                            Description = "Set's or shows you the the Radius for the command .prs search.",
                             Parameter = "<> | <radius>" .. prospector.green .. "." ..
                                         "\n" .. prospector.orange .. "<>" ..
                                         prospector.green.. " - Shows you the current Radius." ..
@@ -26,7 +26,7 @@ prospector["radius"] = function(cmd)
 
     end -- if(cmd == nil
 
-    local radius = tonumber(cmd[3]:trim())
+    local radius = tonumber(cmd[2]:trim())
     prospector.print(prospector.green .. " Current Radius = " ..
     prospector.orange .. prospector.searchRadius ..
     prospector.green .. ".\n")

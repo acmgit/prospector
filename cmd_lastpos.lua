@@ -26,7 +26,7 @@ prospector["lastpos"] = function(cmd)
         end -- if(prospector.last_pos ~= nil
 
     elseif(cmd[2] == "-s") then -- Sends the last Position to distancer
-        local version = ver + (dst.rev / 10)
+        local version = dst.ver + (dst.rev / 10)
         
         if(version >= 2.7) then
             local mylastpos = prospector.last_pos

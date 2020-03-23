@@ -13,7 +13,7 @@ prospector.register_help({
                         }
                        )
 
-prospector["set"]= function(cmd)
+prospector["set"]= function(command)
 
     -- No Node or Index given
     if(command[2] == nil or command[2] == "") then

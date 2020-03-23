@@ -12,7 +12,7 @@ prospector.register_help({
 
                         })
 
-function prospector.pnode_search(cmd)
+prospector["search"] = function(cmd)
     if(cmd[2] == "" or cmd[2] == nil) then
         if(prospector.current_Node == "" or prospector.current_Node == nil) then
             prospector.print(prospector.green .. "There is no searching Node set. Use command set_node <Nodename>.\n")
