@@ -7,13 +7,12 @@
    ****************************************************************
 --]]
 
-local prospector = {}
+prospector = {}
 
 prospector.modname = "Prospector"
-prospector.version = 2
-prospector.revision = 4
+prospector.version = 3
+prospector.revision = 0
 
-prospector.you = nil -- Player
 prospector.searchRadius = 100
 prospector.maxRadius = 300
 prospector.current_Node = ""
@@ -41,12 +40,70 @@ prospector.light_red = minetest.get_color_escape_sequence('#FF8888')
 
 prospector.display_chat_message = minetest.display_chat_message
 
+prospector.helpsystem = {}
 --[[
    ****************************************************************
    *******        Functions for Prospector                   ******
    ****************************************************************
 --]]
 
+--[[
+   ****************************************************************
+   *******        Function check(command)                    ******
+   ****************************************************************
+    Check if the command is valid
+--]]
+function prospector.check(cmd)
+        if(cmd ~= nil and cmd[1] ~= nil) then
+            if(prospector[cmd[1]] ~= nil) then
+            -- Command is valid, execute it with parameter
+            prospector[cmd[1]](cmd)
+
+            else -- A command is given, but
+            -- Command not found, report it.
+                if(cmd[1] ~= nil) then
+                    prospector.print(prospector.red .. "Prospector: Unknown Command \n" ..
+                                    prospector.orange .. cmd[1] .. prospector.red .. "\n.")
+
+                else
+                    if(prospector["help"]) then
+                        prospector["help"]()
+
+                    else
+                        prospector.print(prospector.red .. "Unknown Command. No helpsystem available.")
+
+                    end --if(prospector["help"]
+
+                end -- if(cmd[1]
+
+            end -- if(prospector[cmd[1
+                
+        else
+            prospector.print(prospector.red .. "No Command for Prospector given.")
+            prospector.print(prospector.red .. "Try .prs help.")
+            
+        end -- if(not cmd)
+                    
+end -- function prospector.check(cmd
+
+--[[
+   ****************************************************************
+   *******         Function register_help()                  ******
+   ****************************************************************
+    Registers a new Entry in the Helpsystem for an Command.
+]]--
+function prospector.register_help(entry)
+
+    prospector.helpsystem[entry.Name] = {
+                                Name = entry.Name,
+                                Usage = entry.Usage,
+                                Description = entry.Description,
+                                Parameter = entry.Parameter
+                            }
+
+end
+
+--[[
 function prospector.show_nodelist(pattern)
     if(pattern == "") then
         prospector.print(prospector.green .. "Show the Nodelist:\n")
@@ -98,6 +155,7 @@ function prospector.show_nodelist(pattern)
     end -- if(pattern == ""
 
 end -- function(show_nodelist
+]]--
 
 function prospector.check_node(node)
     if(prospector.pnodelist ~= nil) then
@@ -143,13 +201,8 @@ function prospector.search_node(node)
         prospector.print(prospector.green .. " No Nodename given!\n")
 
     else
-        if(prospector.you == nil) then -- Don't know why, but sometimes there is no localplayer registered at start.
-            prospector.you = minetest.localplayer
-
-        end -- if(prospector.you
-
         prospector.print(prospector.green .. "Searching for " .. prospector.yellow .. node .. prospector.green .. ".\n")
-        local nodes = find_node(prospector.you:get_pos(), prospector.searchRadius, node)
+        local nodes = find_node(minetest.localplayer:get_pos(), prospector.searchRadius, node)
 
         if(nodes ~= nil) then
             prospector.print(prospector.green .. "Found at ".. prospector.orange .. pos_to_string(nodes) ..
@@ -171,7 +224,7 @@ function prospector.search_node(node)
 end -- function search_node()
 
 function prospector.calc_distance()
-    return math.floor(vector.distance(prospector.you:get_pos(), string_to_pos(prospector.last_pos)))
+    return math.floor(vector.distance(minetest.localplayer:get_pos(), string_to_pos(prospector.last_pos)))
 
 end -- function calc_distance
 
@@ -257,6 +310,8 @@ function prospector.convert_position(pos)
     return nil
 end -- function convert_position
 
+--[[
+    
 function prospector.pnode_lastpos(cmd)
     local command = prospector.split(cmd)
     if(command[1] == nil or command[1] == "") then
@@ -281,14 +336,13 @@ function prospector.pnode_lastpos(cmd)
 
             end -- if(mylastpos ==
 
-            dst.send_pos(prospector.you:get_name(), mylastpos)
+            dst.send_pos(minetest.localplayer:get_name(), mylastpos)
 
         else
             prospector.print(prospector.orange .. "No Distancer found or Version < 2.7.\n")
 
         end -- if(dst.ver
 
---[[
         if(prospector.distancer_channel ~= nil) then
             if(prospector.distancer_channel:is_writeable()) then
                 prospector.distancer_channel:send_all("POS:" .. prospector.last_pos)
@@ -305,7 +359,6 @@ function prospector.pnode_lastpos(cmd)
             prospector.distancer_channel = minetest.mod_channel_join(prospector.distancer_channelname)
 
         end -- if(prospector.distancer_channel
-]]--
 
     end -- if(command[1]
 
@@ -354,6 +407,7 @@ function prospector.pnode_search(cmd)
     prospector.search_node(cmd)
 
 end -- prospector.pnode_search
+
 
 function prospector.pnode_setradius(cmd)
     if(cmd == nil or cmd == "") then
@@ -429,6 +483,7 @@ function prospector.pnode_set(cmd)
     prospector.set_node(command[1])
 
 end -- prospector.pnode_set
+]]--
 
 function prospector.show_version()
     print("[CSM-MOD]" .. prospector.modname .. " v " ..
@@ -495,6 +550,7 @@ end -- distancer.handle_message
    ****************************************************************
 --]]
 
+--[[
 minetest.register_chatcommand("pnode_lastpos", {
 
     params = "<> | -s",
@@ -509,6 +565,7 @@ minetest.register_chatcommand("pnode_lastpos", {
     end -- function
 
 }) -- chatcommand prospector_last_pos
+
 
 minetest.register_chatcommand("pnode_list", {
 
@@ -572,6 +629,28 @@ minetest.register_chatcommand("pnode_set", {
     end -- func
 
 }) -- chatcommand prospector_set_node
+]]--
+
+--[[
+   ****************************************************************
+   *******        Registered Chatcommands                    ******
+   ****************************************************************
+--]]
+
+minetest.register_chatcommand("prs",{
+    param = "<command> <parameter>",
+    description = "Gives the Prospector a command with or without Parameter.\n",
+    func = function(cmd)
+                if(cmd.type == "string") then
+                    cmd = cmd:lower()
+                end
+                local command = prospector.split(cmd)
+                prospector.check(command)
+
+            end -- function
+
+}) -- minetest.register_chatcommand("dis
+
 
 
 --[[
@@ -579,9 +658,6 @@ minetest.register_chatcommand("pnode_set", {
    *******        Main for Prospector                        ******
    ****************************************************************
 --]]
-
--- Get yourself
-prospector.you = minetest.localplayer
 
 prospector.nodestring = prospector.storage:get_string("nodes") -- Get the Nodelist as String
 if(prospector.nodestring ~= nil) then
@@ -626,5 +702,12 @@ minetest.after(5, function()
   end -- function()
   )
   ]]--
+
+dofile("prospector:cmd_help.lua")
+dofile("prospector:cmd_lastpos.lua")
+dofile("prospector:cmd_list.lua")
+dofile("prospector:cmd_search.lua")
+dofile("prospector:cmd_radius.lua")
+dofile("prospector:cmd_set.lua")
 
 prospector.show_version()
