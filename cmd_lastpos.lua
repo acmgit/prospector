@@ -40,8 +40,12 @@ prospector["lastpos"] = function(cmd)
         else
             prospector.print(prospector.orange .. "No Distancer found or Version < 2.7.\n")
 
-        end -- if(dst.ver
-
+        end -- if(version
+    else
+        prospector.print(prospector.red .. "Unknown Option " .. prospector.orange .. cmd[2] .. prospector.green .. " for .prs lastpos.")
+        prospector.print(prospector.red .. "Try .prs help lastpos")
+        
+    end -- if(cmd[2]
 --[[
         if(prospector.distancer_channel ~= nil) then
             if(prospector.distancer_channel:is_writeable()) then
@@ -61,6 +65,6 @@ prospector["lastpos"] = function(cmd)
         end -- if(prospector.distancer_channel
 ]]--
 
-    end -- if(command[1]
+
 
 end -- prospector.pnode_lastpos
